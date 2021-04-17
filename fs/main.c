@@ -30,15 +30,17 @@ PRIVATE int fs_exit();
  *                                task_fs
  *****************************************************************************/
 /**
- * <Ring 1> The main loop of TASK FS.
+ * <Ring 1> 文件系统任务(TASK_FS)的主循环
  * 
  *****************************************************************************/
 PUBLIC void task_fs()
 {
 	printl("{FS} Task FS begins.\n");
-
+	
+	/*调用init_fs()做一些准备工作*/
 	init_fs();
-
+	
+	/*不断尝试接受消息并处理*/
 	while (1) {
 		send_recv(RECEIVE, ANY, &fs_msg);
 
@@ -81,6 +83,7 @@ PUBLIC void task_fs()
 			break;
 		}
 
+		/*硬盘日志*/
 #ifdef ENABLE_DISK_LOG
 		char * msg_name[128];
 		msg_name[OPEN]   = "OPEN";
@@ -126,37 +129,38 @@ PUBLIC void task_fs()
  *                                init_fs
  *****************************************************************************/
 /**
- * <Ring 1> Do some preparation.
+ * <Ring 1> 做一些准备工作.
  * 
  *****************************************************************************/
 PRIVATE void init_fs()
-{
+{	
 	int i;
-
-	/* f_desc_table[] */
+	
+	
+	/* 初始化文件描述符表 */
 	for (i = 0; i < NR_FILE_DESC; i++)
 		memset(&f_desc_table[i], 0, sizeof(struct file_desc));
-
-	/* inode_table[] */
+	
+	/* 初始化内存中的inode表 */
 	for (i = 0; i < NR_INODE; i++)
 		memset(&inode_table[i], 0, sizeof(struct inode));
-
-	/* super_block[] */
+	
+	/* 初始化内存中的超级块的一些信息 */
 	struct super_block * sb = super_block;
 	for (; sb < &super_block[NR_SUPER_BLOCK]; sb++)
 		sb->sb_dev = NO_DEV;
-
-	/* open the device: hard disk */
+	
+	/* 打开硬盘设备 */
 	MESSAGE driver_msg;
 	driver_msg.type = DEV_OPEN;
 	driver_msg.DEVICE = MINOR(ROOT_DEV);
 	assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
 	send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
-
-	/* make FS */
+	
+	/* 调用mkfs()make文件系统 */
 	mkfs();
 
-	/* load super block of ROOT */
+	/* 加载超级块到内存 */
 	read_super_block(ROOT_DEV);
 
 	sb = get_super_block(ROOT_DEV);
@@ -169,14 +173,15 @@ PRIVATE void init_fs()
  *                                mkfs
  *****************************************************************************/
 /**
- * <Ring 1> Make a available Orange'S FS in the disk. It will
- *          - Write a super block to sector 1.
- *          - Create three special files: dev_tty0, dev_tty1, dev_tty2
- *          - Create a file cmd.tar
- *          - Create the inode map
- *          - Create the sector map
- *          - Create the inodes of the files
- *          - Create `/', the root directory
+ * <Ring 1> 在硬盘建立一个可用的文件系统. 
+ *	    - 向硬盘驱动程序索取ROOT_DEV的起始扇区和大小
+ *          - 往扇区1写入超级块
+ *          - 创建三个特殊文件: dev_tty0, dev_tty1, dev_tty2
+ *          - 创建cmd.tar
+ *          - 创建inode map
+ *          - 创建sector map
+ *          - 创建文件的inode
+ *          - 创建根目录
  *****************************************************************************/
 PRIVATE void mkfs()
 {
@@ -184,9 +189,9 @@ PRIVATE void mkfs()
 	int i, j;
 
 	/************************/
-	/*      super block     */
+	/*      超级块     */
 	/************************/
-	/* get the geometry of ROOTDEV */
+	/* 得到ROOT结构 */
 	struct part_info geo;
 	driver_msg.type		= DEV_IOCTL;
 	driver_msg.DEVICE	= MINOR(ROOT_DEV);
@@ -198,8 +203,8 @@ PRIVATE void mkfs()
 
 	printl("{FS} dev size: 0x%x sectors\n", geo.size);
 
-	int bits_per_sect = SECTOR_SIZE * 8; /* 8 bits per byte */
-	/* generate a super block */
+	int bits_per_sect = SECTOR_SIZE * 8; /*每字节8比特 */
+	/* 生成超级块 */
 	struct super_block sb;
 	sb.magic	  = MAGIC_V1; /* 0x111 */
 	sb.nr_inodes	  = bits_per_sect;
@@ -222,7 +227,7 @@ PRIVATE void mkfs()
 	memset(fsbuf, 0x90, SECTOR_SIZE);
 	memcpy(fsbuf, &sb, SUPER_BLOCK_SIZE);
 
-	/* write the super block */
+	/* 写超级块 */
 	WR_SECT(ROOT_DEV, 1);
 
 	printl("{FS} devbase:0x%x00, sb:0x%x00, imap:0x%x00, smap:0x%x00\n"
@@ -271,13 +276,13 @@ PRIVATE void mkfs()
 
 	WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects);
 
-	/* zeromemory the rest sector-map */
+	/* sector map剩下的地方置0 */
 	memset(fsbuf, 0, SECTOR_SIZE);
 	for (i = 1; i < sb.nr_smap_sects; i++)
 		WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects + i);
 
 	/* cmd.tar */
-	/* make sure it'll not be overwritten by the disk log */
+	/* 确保不会被disklog重写 */
 	assert(INSTALL_START_SECT + INSTALL_NR_SECTS < 
 	       sb.nr_sects - NR_SECTS_FOR_LOG);
 	int bit_offset = INSTALL_START_SECT -
@@ -332,7 +337,7 @@ PRIVATE void mkfs()
 	WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects + sb.nr_smap_sects);
 
 	/************************/
-	/*          `/'         */
+	/*          根目录         */
 	/************************/
 	memset(fsbuf, 0, SECTOR_SIZE);
 	struct dir_entry * pde = (struct dir_entry *)fsbuf;
@@ -355,7 +360,7 @@ PRIVATE void mkfs()
  *                                rw_sector
  *****************************************************************************/
 /**
- * <Ring 1> R/W a sector via messaging with the corresponding driver.
+ * <Ring 1> 通过消息传递机制读写扇区
  * 
  * @param io_type  DEV_READ or DEV_WRITE
  * @param dev      device nr
@@ -388,8 +393,7 @@ PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr,
  *                                read_super_block
  *****************************************************************************/
 /**
- * <Ring 1> Read super block from the given device then write it into a free
- *          super_block[] slot.
+ * <Ring 1> 将一个设备的超级块读入缓存.
  * 
  * @param dev  From which device the super block comes.
  *****************************************************************************/
@@ -427,7 +431,7 @@ PRIVATE void read_super_block(int dev)
  *                                get_super_block
  *****************************************************************************/
 /**
- * <Ring 1> Get the super block from super_block[].
+ * <Ring 1> 得到给定设备的超级块指针
  * 
  * @param dev Device nr.
  * 
@@ -450,9 +454,9 @@ PUBLIC struct super_block * get_super_block(int dev)
  *                                get_inode
  *****************************************************************************/
 /**
- * <Ring 1> Get the inode ptr of given inode nr. A cache -- inode_table[] -- is
- * maintained to make things faster. If the inode requested is already there,
- * just return it. Otherwise the inode will be read from the disk.
+ * <Ring 1> 从inode数组中得到inode的指针. 缓存inode_table[]加速这一行为.
+ * 如果缓存里有就直接返回
+ * 否则就去硬盘里读
  * 
  * @param dev Device nr.
  * @param num I-node nr.
@@ -467,22 +471,24 @@ PUBLIC struct inode * get_inode(int dev, int num)
 	struct inode * p;
 	struct inode * q = 0;
 	for (p = &inode_table[0]; p < &inode_table[NR_INODE]; p++) {
-		if (p->i_cnt) {	/* not a free slot */
+		if (p->i_cnt) {	/* 不是空的 */
 			if ((p->i_dev == dev) && (p->i_num == num)) {
-				/* this is the inode we want */
+				/*找到了想要的inode*/
 				p->i_cnt++;
 				return p;
 			}
 		}
-		else {		/* a free slot */
-			if (!q) /* q hasn't been assigned yet */
-				q = p; /* q <- the 1st free slot */
+		else {		/* 空的 */
+			if (!q) /* q没被赋值 */
+				q = p; /* 让q指向第一个空的位置 */
 		}
 	}
-
-	if (!q)
+	
+	
+	if (!q)/*缓存满*/
 		panic("the inode table is full");
-
+	
+	/*从硬盘读取inode到缓存*/
 	q->i_dev = dev;
 	q->i_num = num;
 	q->i_cnt = 1;
@@ -506,9 +512,7 @@ PUBLIC struct inode * get_inode(int dev, int num)
  *                                put_inode
  *****************************************************************************/
 /**
- * Decrease the reference nr of a slot in inode_table[]. When the nr reaches
- * zero, it means the inode is not used any more and can be overwritten by
- * a new inode.
+ * 释放inode_table[]中的条目 当数值变为0的时候, 意味着这个inode不被需要，可以被覆盖
  * 
  * @param pinode I-node ptr.
  *****************************************************************************/
@@ -522,8 +526,7 @@ PUBLIC void put_inode(struct inode * pinode)
  *                                sync_inode
  *****************************************************************************/
 /**
- * <Ring 1> Write the inode back to the disk. Commonly invoked as soon as the
- *          inode is changed.
+ * <Ring 1> 以写穿透方式保持磁盘和内存内容一致性，即内存发生改变就去硬盘修改
  * 
  * @param p I-node ptr.
  *****************************************************************************/
@@ -548,7 +551,7 @@ PUBLIC void sync_inode(struct inode * p)
  *                                fs_fork
  *****************************************************************************/
 /**
- * Perform the aspects of fork() that relate to files.
+ * 协助fork()去fork子进程，增加两个计数器
  * 
  * @return Zero if success, otherwise a negative integer.
  *****************************************************************************/
@@ -571,7 +574,7 @@ PRIVATE int fs_fork()
  *                                fs_exit
  *****************************************************************************/
 /**
- * Perform the aspects of exit() that relate to files.
+ * 进程结束，释放没释放的inode
  * 
  * @return Zero if success.
  *****************************************************************************/
