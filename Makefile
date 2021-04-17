@@ -17,7 +17,7 @@ CC		= gcc
 LD		= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -I include/sys/ -f elf
-CFLAGS		= -m32 -I include/ -I include/sys/ -c -fno-builtin -Wall
+CFLAGS		= -m32 -I include/ -I include/sys/ -c -fno-builtin -Wall -fno-stack-protector
 #CFLAGS		= -I include/ -c -fno-builtin -fno-stack-protector -fpack-struct -Wall
 LDFLAGS		= -m elf_i386 -Ttext $(ENTRYPOINT) -Map krnl.map
 DASMFLAGS	= -D
@@ -71,10 +71,10 @@ disasm :
 # We assume that "a.img" exists in current folder
 buildimg :
 	dd if=boot/boot.bin of=a.img bs=512 count=1 conv=notrunc
-	sudo mount -o loop a.img /mnt/floppy/
-	sudo cp -fv boot/loader.bin /mnt/floppy/
-	sudo cp -fv kernel.bin /mnt/floppy
-	sudo umount /mnt/floppy
+	sudo mount -o loop a.img /mnt
+	sudo cp -fv boot/loader.bin /mnt
+	sudo cp -fv kernel.bin /mnt
+	sudo umount /mnt
 
 boot/boot.bin : boot/boot.asm boot/include/load.inc boot/include/fat12hdr.inc
 	$(ASM) $(ASMBFLAGS) -o $@ $<
