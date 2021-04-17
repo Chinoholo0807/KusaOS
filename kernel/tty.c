@@ -30,9 +30,6 @@
  *             - tty_dev_write() returns chars to a process waiting for input
  *             - tty_do_write() handles DEV_WRITE message
  *             - tty_write() handles TTY_WRITE message
- *
- * @author Forrest Y. Yu
- * @date   2008
  *****************************************************************************
  *****************************************************************************/
 
