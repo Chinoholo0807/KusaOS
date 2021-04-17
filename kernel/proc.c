@@ -33,7 +33,22 @@ PUBLIC void schedule()
 	struct proc*	p;
 	int		greatest_ticks = 0;
 
-	while (!greatest_ticks) {
+	//myself
+	p = p_proc_ready;				//当前进程表中正在运行的进程
+	if (p == &LAST_PROC) {
+		p = &FIRST_PROC;
+	}
+	else p++;
+	while (p->p_flags != 0 ) {	//确保被调度的进程允许运行
+		if (p == &LAST_PROC) {
+			p = &FIRST_PROC;
+		}
+		else p++;
+	}
+	p_proc_ready = p;
+
+
+	/*while (!greatest_ticks) {
 		for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
 			if (p->p_flags == 0) {
 				if (p->ticks > greatest_ticks) {
@@ -47,9 +62,8 @@ PUBLIC void schedule()
 			for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
 				if (p->p_flags == 0)
 					p->ticks = p->priority;
-	}
+	}*/
 }
-
 /*****************************************************************************
  *                                sys_sendrec
  *****************************************************************************/
