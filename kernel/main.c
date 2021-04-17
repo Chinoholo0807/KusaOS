@@ -37,13 +37,13 @@ PUBLIC int kernel_main()
 	struct proc * p = proc_table;
 
 	char * stk = task_stack + STACK_SIZE_TOTAL;
-
+	/* 初始化TASK和PROC */
 	for (i = 0; i < NR_TASKS + NR_PROCS; i++,p++,t++) {
 		if (i >= NR_TASKS + NR_NATIVE_PROCS) {
 			p->p_flags = FREE_SLOT;
 			continue;
 		}
-
+   		/* 根据 TASK 和 PROC 的不同分别初始化，赋予不同的特权值 */
 	        if (i < NR_TASKS) {     /* TASK */
                         t	= task_table + i;
                         priv	= PRIVILEGE_TASK;
@@ -59,10 +59,10 @@ PUBLIC int kernel_main()
 			prio    = 5;
                 }
 
-		strcpy(p->name, t->name);	/* name of the process */
+		strcpy(p->name, t->name);	/* 进程的名字 */
 		p->p_parent = NO_TASK;
 
-		if (strcmp(t->name, "INIT") != 0) {
+		if (strcmp(t->name, "INIT") != 0) { 
 			p->ldts[INDEX_LDT_C]  = gdt[SELECTOR_KERNEL_CS >> 3];
 			p->ldts[INDEX_LDT_RW] = gdt[SELECTOR_KERNEL_DS >> 3];
 
