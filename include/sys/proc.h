@@ -66,13 +66,13 @@ struct proc {
 
 	int exit_status; /**< for parent */
 
-	struct file_desc * filp[NR_FILES];
+	struct file_desc * filp[NR_FILES]; /* 进程打开的文件 */
 };
 
 struct task {
-	task_f	initial_eip;
-	int	stacksize;
-	char	name[32];
+	task_f	initial_eip; /* 进程入口，在这里默认为函数地址 */
+	int	stacksize;  /* 为该进程分配的进程栈的大小 */ 
+	char	name[32];   /* 进程的名字 */
 };
 
 #define proc2pid(x) (x - proc_table)
