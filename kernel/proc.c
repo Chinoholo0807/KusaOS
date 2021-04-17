@@ -1,8 +1,6 @@
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                proc.c
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                                                    Forrest Yu, 2005
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 #include "type.h"
@@ -27,7 +25,7 @@ PRIVATE int  deadlock(int src, int dest);
  *                                schedule
  *****************************************************************************/
 /**
- * <Ring 0> Choose one proc to run.
+ * <Ring 0> 进程调度函数，运行在<Ring0>上,用于切换当前进程
  * 
  *****************************************************************************/
 PUBLIC void schedule()
@@ -57,7 +55,7 @@ PUBLIC void schedule()
  *****************************************************************************/
 /**
  * <Ring 0> The core routine of system call `sendrec()'.
- * 
+ * 封装了msg_send和msg_recv在里面，是一个系统调用
  * @param function SEND or RECEIVE
  * @param src_dest To/From whom the message is transferred.
  * @param m        Ptr to the MESSAGE body.
@@ -67,7 +65,7 @@ PUBLIC void schedule()
  *****************************************************************************/
 PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p)
 {
-	assert(k_reenter == 0);	/* make sure we are not in ring0 */
+	assert(k_reenter == 0);	/* 确保我们在ring0上 */
 	assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS) ||
 	       src_dest == ANY ||
 	       src_dest == INTERRUPT);
@@ -108,7 +106,7 @@ PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p)
  *****************************************************************************/
 /**
  * <Ring 0~1> Calculate the linear address of a certain segment of a given
- * proc.
+ * proc. 计算给定进程的某一段(数据段or代码段）的线性地址
  * 
  * @param p   Whose (the proc ptr).
  * @param idx Which (one proc has more than one segments).
@@ -127,7 +125,7 @@ PUBLIC int ldt_seg_linear(struct proc* p, int idx)
  *****************************************************************************/
 /**
  * <Ring 0~1> Virtual addr --> Linear addr.
- * 
+ * 将虚拟地址转化为线性地址
  * @param pid  PID of the proc whose address is to be calculated.
  * @param va   Virtual address.
  * 
@@ -152,7 +150,7 @@ PUBLIC void* va2la(int pid, void* va)
  *****************************************************************************/
 /**
  * <Ring 0~3> Clear up a MESSAGE by setting each byte to 0.
- * 
+ * 将一个MESSAGE信息重置
  * @param p  The message to be cleared.
  *****************************************************************************/
 PUBLIC void reset_msg(MESSAGE* p)
@@ -166,7 +164,7 @@ PUBLIC void reset_msg(MESSAGE* p)
 /**
  * <Ring 0> This routine is called after `p_flags' has been set (!= 0), it
  * calls `schedule()' to choose another proc as the `proc_ready'.
- *
+ * 阻塞一个进程，然后调用schedule()进程调度函数来进行进程调度
  * @attention This routine does not change `p_flags'. Make sure the `p_flags'
  * of the proc to be blocked has been set properly.
  * 
@@ -184,7 +182,7 @@ PRIVATE void block(struct proc* p)
 /**
  * <Ring 0> This is a dummy routine. It does nothing actually. When it is
  * called, the `p_flags' should have been cleared (== 0).
- * 
+ * 取消阻塞，目前什么都没做
  * @param p The unblocked proc.
  *****************************************************************************/
 PRIVATE void unblock(struct proc* p)
@@ -201,7 +199,7 @@ PRIVATE void unblock(struct proc* p)
  * instance, if we have procs trying to send messages like this:
  * A -> B -> C -> A, then a deadlock occurs, because all of them will
  * wait forever. If no cycles detected, it is considered as safe.
- * 
+ * 检测死锁是否发生，每次发送消息前会调用该函数，防止发生死锁
  * @param src   Who wants to send message.
  * @param dest  To whom the message is sent.
  * 
@@ -241,10 +239,10 @@ PRIVATE int deadlock(int src, int dest)
  * <Ring 0> Send a message to the dest proc. If dest is blocked waiting for
  * the message, copy the message to it and unblock dest. Otherwise the caller
  * will be blocked and appended to the dest's sending queue.
- * 
- * @param current  The caller, the sender.
- * @param dest     To whom the message is sent.
- * @param m        The message.
+ * 用于发送消息的函数
+ * @param current  The caller, the sender. msg发送方
+ * @param dest     To whom the message is sent. msg接受方，就是在proc_table中的序号
+ * @param m        The message.要发送的信息
  * 
  * @return Zero if success.
  *****************************************************************************/
@@ -252,27 +250,26 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
 {
 	struct proc* sender = current;
 	struct proc* p_dest = proc_table + dest; /* proc dest */
-
+	
 	assert(proc2pid(sender) != dest);
-
-	/* check for deadlock here */
-	if (deadlock(proc2pid(sender), dest)) {
+	
+	if (deadlock(proc2pid(sender), dest)) {/* 检测死锁是否发生 */ 
 		panic(">>DEADLOCK<< %s->%s", sender->name, p_dest->name);
 	}
 
-	if ((p_dest->p_flags & RECEIVING) && /* dest is waiting for the msg */
-	    (p_dest->p_recvfrom == proc2pid(sender) ||
-	     p_dest->p_recvfrom == ANY)) {
+	if ((p_dest->p_flags & RECEIVING) && /* p_dest正准备接收信息 */
+	    (p_dest->p_recvfrom == proc2pid(sender) || 
+	     p_dest->p_recvfrom == ANY)) { /*  p_dest的接收地址是发送方或ANY，则可以接收发送方发送的msg */
 		assert(p_dest->p_msg);
 		assert(m);
 
-		phys_copy(va2la(dest, p_dest->p_msg),
+		phys_copy(va2la(dest, p_dest->p_msg),/*拷贝msg*/
 			  va2la(proc2pid(sender), m),
 			  sizeof(MESSAGE));
 		p_dest->p_msg = 0;
-		p_dest->p_flags &= ~RECEIVING; /* dest has received the msg */
+		p_dest->p_flags &= ~RECEIVING; /*  p_dest已接收msg，将p_flag复位 */
 		p_dest->p_recvfrom = NO_TASK;
-		unblock(p_dest);
+		unblock(p_dest);/* 取消 p_dest 阻塞 */
 
 		assert(p_dest->p_flags == 0);
 		assert(p_dest->p_msg == 0);
@@ -283,13 +280,13 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
 		assert(sender->p_recvfrom == NO_TASK);
 		assert(sender->p_sendto == NO_TASK);
 	}
-	else { /* dest is not waiting for the msg */
+	else { /* p_dest没有准备接收msg或没有等待发送方的msg */
 		sender->p_flags |= SENDING;
 		assert(sender->p_flags == SENDING);
 		sender->p_sendto = dest;
 		sender->p_msg = m;
 
-		/* append to the sending queue */
+		/*将sender加入到p_dest的q_sending/next_sending队列中 */
 		struct proc * p;
 		if (p_dest->q_sending) {
 			p = p_dest->q_sending;
@@ -302,7 +299,7 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
 		}
 		sender->next_sending = 0;
 
-		block(sender);
+		block(sender); /*阻塞进程，等待p_dest准备接收sender的msg*/
 
 		assert(sender->p_flags == SENDING);
 		assert(sender->p_msg != 0);
@@ -321,7 +318,7 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
  * <Ring 0> Try to get a message from the src proc. If src is blocked sending
  * the message, copy the message from it and unblock src. Otherwise the caller
  * will be blocked.
- * 
+ * 用于接收消息的函数
  * @param current The caller, the proc who wanna receive.
  * @param src     From whom the message will be received.
  * @param m       The message ptr to accept the message.
@@ -330,23 +327,16 @@ PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m)
  *****************************************************************************/
 PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 {
-	struct proc* p_who_wanna_recv = current; /**
-						  * This name is a little bit
-						  * wierd, but it makes me
-						  * think clearly, so I keep
-						  * it.
-						  */
-	struct proc* p_from = 0; /* from which the message will be fetched */
+	struct proc* p_who_wanna_recv = current; 
+	struct proc* p_from = 0; /* 从何处获取msg */
 	struct proc* prev = 0;
 	int copyok = 0;
 
 	assert(proc2pid(p_who_wanna_recv) != src);
 
-	if ((p_who_wanna_recv->has_int_msg) &&
-	    ((src == ANY) || (src == INTERRUPT))) {
-		/* There is an interrupt needs p_who_wanna_recv's handling and
-		 * p_who_wanna_recv is ready to handle it.
-		 */
+	if ((p_who_wanna_recv->has_int_msg) && /* 有一个中断需要进程处理，或者说进程正在等待一个中断发生 */
+	    ((src == ANY) || (src == INTERRUPT))) { 
+		/* 存在一个中断需要 p_who_wanna_recv处理 */
 
 		MESSAGE msg;
 		reset_msg(&msg);
@@ -367,11 +357,10 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 	}
 
 
-	/* Arrives here if no interrupt for p_who_wanna_recv. */
+	/* 运行到这里说明没有中断需要p_who_wanna_recv去处理. */
 	if (src == ANY) {
-		/* p_who_wanna_recv is ready to receive messages from
-		 * ANY proc, we'll check the sending queue and pick the
-		 * first proc in it.
+		/* p_who_wanna_recv准备接收任一proc的msg,
+		 * 检查q_sending并取出第一个proc
 		 */
 		if (p_who_wanna_recv->q_sending) {
 			p_from = p_who_wanna_recv->q_sending;
@@ -389,16 +378,13 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 		}
 	}
 	else {
-		/* p_who_wanna_recv wants to receive a message from
-		 * a certain proc: src.
+		/* p_who_wanna_recv 想要接收特定的proc,在proc_table中编号为src
 		 */
 		p_from = &proc_table[src];
 
 		if ((p_from->p_flags & SENDING) &&
 		    (p_from->p_sendto == proc2pid(p_who_wanna_recv))) {
-			/* Perfect, src is sending a message to
-			 * p_who_wanna_recv.
-			 */
+			/*  p_from正好要发生msg给p_who_wanna_recv */
 			copyok = 1;
 
 			struct proc* p = p_who_wanna_recv->q_sending;
@@ -428,10 +414,8 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 	}
 
 	if (copyok) {
-		/* It's determined from which proc the message will
-		 * be copied. Note that this proc must have been
-		 * waiting for this moment in the queue, so we should
-		 * remove it from the queue.
+		/* 若copyok=1则说明msg准备被拷贝
+		 * 在拷贝结束后移除q_sending /next_sending 
 		 */
 		if (p_from == p_who_wanna_recv->q_sending) { /* the 1st one */
 			assert(prev == 0);
@@ -446,7 +430,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 
 		assert(m);
 		assert(p_from->p_msg);
-		/* copy the message */
+		/* copy  */
 		phys_copy(va2la(proc2pid(p_who_wanna_recv), m),
 			  va2la(proc2pid(p_from), p_from->p_msg),
 			  sizeof(MESSAGE));
@@ -454,12 +438,9 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 		p_from->p_msg = 0;
 		p_from->p_sendto = NO_TASK;
 		p_from->p_flags &= ~SENDING;
-		unblock(p_from);
+		unblock(p_from); /* 取消p_from的阻塞 */
 	}
-	else {  /* nobody's sending any msg */
-		/* Set p_flags so that p_who_wanna_recv will not
-		 * be scheduled until it is unblocked.
-		 */
+	else {  /* 没有proc准备发生msg给p_who_wanna_recv */
 		p_who_wanna_recv->p_flags |= RECEIVING;
 
 		p_who_wanna_recv->p_msg = m;
