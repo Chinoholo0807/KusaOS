@@ -3,8 +3,6 @@
  * @file   hd.c
  * @brief  Hard disk (winchester) driver.
  * The `device nr' in this file means minor device nr.
- * @author Forrest Y. Yu
- * @date   2005~2008
  *****************************************************************************
  *****************************************************************************/
 
