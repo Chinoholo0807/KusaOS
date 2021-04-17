@@ -46,7 +46,7 @@ PRIVATE	struct hd_info	hd_info[1];
  *                                task_hd
  *****************************************************************************/
 /**
- * Main loop of HD driver.
+ * 硬盘驱动的主循环
  * 
  *****************************************************************************/
 PUBLIC void task_hd()
@@ -92,22 +92,22 @@ PUBLIC void task_hd()
  *                                init_hd
  *****************************************************************************/
 /**
- * <Ring 1> Check hard drive, set IRQ handler, enable IRQ and initialize data
+ * <Ring 1> 检查硬盘设备,设置硬盘中断处理程序,开中断，并初始化相关数据
  *          structures.
  *****************************************************************************/
 PRIVATE void init_hd()
 {
 	int i;
-
+	//检查硬盘设备
 	/* Get the number of drives from the BIOS data area */
 	u8 * pNrDrives = (u8*)(0x475);
 	printl("{HD} NrDrives:%d.\n", *pNrDrives);
 	assert(*pNrDrives);
-
+	//设置硬盘中断处理程序,开中断
 	put_irq_handler(AT_WINI_IRQ, hd_handler);
 	enable_irq(CASCADE_IRQ);
 	enable_irq(AT_WINI_IRQ);
-
+	//初始化相关数据
 	for (i = 0; i < (sizeof(hd_info) / sizeof(hd_info[0])); i++)
 		memset(&hd_info[i], 0, sizeof(hd_info[0]));
 	hd_info[0].open_cnt = 0;
@@ -117,19 +117,18 @@ PRIVATE void init_hd()
  *                                hd_open
  *****************************************************************************/
 /**
- * <Ring 1> This routine handles DEV_OPEN message. It identify the drive
- * of the given device and read the partition table of the drive if it
- * has not been read.
+ * <Ring 1> 处理DEV_OPEN消息. 由设备次设备号得到驱动器号，然后调用hd_identify()
+ *获取并打印部分硬盘参数
  * 
  * @param device The device to be opened.
  *****************************************************************************/
 PRIVATE void hd_open(int device)
-{
+{	//由设备次设备号得到驱动器号
 	int drive = DRV_OF_DEV(device);
 	assert(drive == 0);	/* only one drive */
-
+	//获取并打印部分硬盘参数
 	hd_identify(drive);
-
+	
 	if (hd_info[drive].open_cnt++ == 0) {
 		partition(drive * (NR_PART_PER_DRIVE + 1), P_PRIMARY);
 		print_hdinfo(&hd_info[drive]);
@@ -140,7 +139,7 @@ PRIVATE void hd_open(int device)
  *                                hd_close
  *****************************************************************************/
 /**
- * <Ring 1> This routine handles DEV_CLOSE message. 
+ * <Ring 1> 处理DEV_CLOSE消息 
  * 
  * @param device The device to be opened.
  *****************************************************************************/
@@ -148,7 +147,7 @@ PRIVATE void hd_close(int device)
 {
 	int drive = DRV_OF_DEV(device);
 	assert(drive == 0);	/* only one drive */
-
+	//关闭设备
 	hd_info[drive].open_cnt--;
 }
 
@@ -157,7 +156,8 @@ PRIVATE void hd_close(int device)
  *                                hd_rdwt
  *****************************************************************************/
 /**
- * <Ring 1> This routine handles DEV_READ and DEV_WRITE message.
+ * <Ring 1> 处理DEV_READ和DEV_WRITE消息
+ * 没有使用任何缓冲区和优化算法
  * 
  * @param p Message ptr.
  *****************************************************************************/
@@ -169,7 +169,7 @@ PRIVATE void hd_rdwt(MESSAGE * p)
 	assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
 
 	/**
-	 * We only allow to R/W from a SECTOR boundary:
+	 * 只允许从SECTOR的边缘开始读取:
 	 */
 	assert((pos & 0x1FF) == 0);
 
@@ -191,7 +191,8 @@ PRIVATE void hd_rdwt(MESSAGE * p)
 
 	int bytes_left = p->CNT;
 	void * la = (void*)va2la(p->PROC_NR, p->BUF);
-
+	
+	/*每次读取一个扇区的数据，直到读取所有需要的数据*/
 	while (bytes_left) {
 		int bytes = min(SECTOR_SIZE, bytes_left);
 		if (p->type == DEV_READ) {
@@ -216,7 +217,7 @@ PRIVATE void hd_rdwt(MESSAGE * p)
  *                                hd_ioctl
  *****************************************************************************/
 /**
- * <Ring 1> This routine handles the DEV_IOCTL message.
+ * <Ring 1> 处理DEV_IOCTL消息
  * 
  * @param p  Ptr to the MESSAGE.
  *****************************************************************************/
@@ -246,7 +247,7 @@ PRIVATE void hd_ioctl(MESSAGE * p)
  *                                get_part_table
  *****************************************************************************/
 /**
- * <Ring 1> Get a partition table of a drive.
+ * <Ring 1> 得到一个设备对应的分区表
  * 
  * @param drive   Drive nr (0 for the 1st disk, 1 for the 2nd, ...)n
  * @param sect_nr The sector at which the partition table is located.
@@ -277,8 +278,7 @@ PRIVATE void get_part_table(int drive, int sect_nr, struct part_ent * entry)
  *                                partition
  *****************************************************************************/
 /**
- * <Ring 1> This routine is called when a device is opened. It reads the
- * partition table(s) and fills the hd_info struct.
+ * <Ring 1> 当设备被打开时调用. 读取分区表，并填入hd_info结构体中.
  * 
  * @param device Device nr.
  * @param style  P_PRIMARY or P_EXTENDED.
@@ -340,7 +340,7 @@ PRIVATE void partition(int device, int style)
  *                                print_hdinfo
  *****************************************************************************/
 /**
- * <Ring 1> Print disk info.
+ * <Ring 1> 打印硬盘信息
  * 
  * @param hdi  Ptr to struct hd_info.
  *****************************************************************************/
@@ -373,7 +373,7 @@ PRIVATE void print_hdinfo(struct hd_info * hdi)
  *                                hd_identify
  *****************************************************************************/
 /**
- * <Ring 1> Get the disk information.
+ * <Ring 1> 获取硬盘信息
  * 
  * @param drive  Drive Nr.
  *****************************************************************************/
@@ -399,7 +399,7 @@ PRIVATE void hd_identify(int drive)
  *                            print_identify_info
  *****************************************************************************/
 /**
- * <Ring 1> Print the hdinfo retrieved via ATA_IDENTIFY command.
+ * <Ring 1> 打印hd_identify得到的信息
  * 
  * @param hdinfo  The buffer read from the disk i/o port.
  *****************************************************************************/
@@ -441,7 +441,7 @@ PRIVATE void print_identify_info(u16* hdinfo)
  *                                hd_cmd_out
  *****************************************************************************/
 /**
- * <Ring 1> Output a command to HD controller.
+ * <Ring 1> 向硬盘控制器输送命令
  * 
  * @param cmd  The command struct ptr.
  *****************************************************************************/
@@ -471,7 +471,7 @@ PRIVATE void hd_cmd_out(struct hd_cmd* cmd)
  *                                interrupt_wait
  *****************************************************************************/
 /**
- * <Ring 1> Wait until a disk interrupt occurs.
+ * <Ring 1> 等待直到发生硬盘中断
  * 
  *****************************************************************************/
 PRIVATE void interrupt_wait()
@@ -484,7 +484,7 @@ PRIVATE void interrupt_wait()
  *                                waitfor
  *****************************************************************************/
 /**
- * <Ring 1> Wait for a certain status.
+ * <Ring 1> 等待一个条件.
  * 
  * @param mask    Status mask.
  * @param val     Required status.
@@ -507,7 +507,7 @@ PRIVATE int waitfor(int mask, int val, int timeout)
  *                                hd_handler
  *****************************************************************************/
 /**
- * <Ring 0> Interrupt handler.
+ * <Ring 0> 硬盘中断处理函数.
  * 
  * @param irq  IRQ nr of the disk interrupt.
  *****************************************************************************/
