@@ -241,7 +241,8 @@ PRIVATE void mkfs()
 	for (i = 0; i < (NR_CONSOLES + 3); i++)
 		fsbuf[0] |= 1 << i;
 
-	assert(fsbuf[0] == 0x3F);/* 0011 1111 :
+	//assert(fsbuf[0] == 0x3F);
+	/* 0011 1111 :
 				  *   || ||||
 				  *   || |||`--- bit 0 : reserved
 				  *   || ||`---- bit 1 : the first inode,
