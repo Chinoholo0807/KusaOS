@@ -1,35 +1,31 @@
 /*************************************************************************//**
  *****************************************************************************
  * @file   kernel/tty.c
- * @brief  The terminal driver.
+ * @brief  终端设备
  *
- * As a common driver, TTY accepts these MESSAGEs:
- *   - DEV_OPEN
- *   - DEV_READ
- *   - DEV_WRITE
+ * 作为一个设备TTY接受这些消息：
+ *   - 打开设备
+ *   - 读设备
+ *   - 写设备
  *
- * Besides, it accepts the other two types of MESSAGE from clock_handler() and
- * a PROC (who is not FS):
+ * 此外，还从时钟中断处理函数和不是文件系统任务的进程接受两种消息
  *
- *   - MESSAGE from clock_handler(): HARD_INT
- *      - Every time clock interrupt occurs, the clock handler will check whether
- *        any key has been pressed. If so, it'll invoke inform_int() to wake up
- *        TTY. It is a special message because it is not from a process -- clock
- *        handler is not a process.
+ *   - 时钟中断处理函数发来的消息：HARD_INT
+ *      - 每次时钟中断发生就去从键盘读取数据到缓冲区
  *
- *   - MESSAGE from a PROC: TTY_WRITE
- *      - TTY is a driver. In most cases MESSAGE is passed from a PROC to FS then
- *        to TTY. For some historical reason, PROC is allowed to pass a TTY_WRITE
- *        MESSAGE directly to TTY. Thus a PROC can write to a tty directly.
+ *   - 文件系统任务外的进程发来的消息： TTY_WRITE
+ *      - TTY是一个设备 大多数情况下消息都是经由文件系统从进程发送给TTY
+ *       处于历史原因, 进程允许直接向TTY发送写消息
+ *       因此进程可以直接写TTY
  *
- * @note   Do not get confused by these function names:
+ * @note   请不要对下列的函数名感到疑惑与困扰:
  *           - tty_dev_read() vs tty_do_read()
- *             - tty_dev_read() reads chars from keyboard buffer
- *             - tty_do_read() handles DEV_READ message
+ *             - tty_dev_read() 从键盘缓冲读取字符
+ *             - tty_do_read() 处理DEV_READ消息
  *           - tty_dev_write() vs tty_do_write() vs tty_write()
- *             - tty_dev_write() returns chars to a process waiting for input
- *             - tty_do_write() handles DEV_WRITE message
- *             - tty_write() handles TTY_WRITE message
+ *             - tty_dev_write() 向请求的进程返回数据
+ *             - tty_do_write() 处理DEV_WRITE消息
+ *             - tty_write() 处理TTY_WRITE消息
  *****************************************************************************
  *****************************************************************************/
 
@@ -63,7 +59,7 @@ PRIVATE void	put_key		(TTY* tty, u32 key);
  *                                task_tty
  *****************************************************************************/
 /**
- * <Ring 1> Main loop of task TTY.
+ * <Ring 1> TTY任务的主循环
  *****************************************************************************/
 PUBLIC void task_tty()
 {
@@ -106,7 +102,7 @@ PUBLIC void task_tty()
 			break;
 		case HARD_INT:
 			/**
-			 * waked up by clock_handler -- a key was just pressed
+			 * 被时钟中断处理函数唤醒 -- 一个按键被按下
 			 * @see clock_handler() inform_int()
 			 */
 			key_pressed = 0;
@@ -123,7 +119,7 @@ PUBLIC void task_tty()
  *                                init_tty
  *****************************************************************************/
 /**
- * Things to be initialized before a tty can be used:
+ * 在TTY可以被使用之前需要被初始化
  *   -# the input buffer
  *   -# the corresponding console
  * 
@@ -142,7 +138,7 @@ PRIVATE void init_tty(TTY* tty)
  *                                in_process
  *****************************************************************************/
 /**
- * keyboard_read() will invoke this routine after having recognized a key press.
+ * keyboard_read()在识别完按键后会使用这个函数
  * 
  * @param tty  The key press is for whom.
  * @param key  The integer key with metadata.
@@ -201,7 +197,7 @@ PUBLIC void in_process(TTY* tty, u32 key)
  *                                put_key
  *****************************************************************************/
 /**
- * Put a key into the in-buffer of TTY.
+ * 把识别到的按键放入TTY的in缓冲区
  *
  * @callergraph
  * 
@@ -224,8 +220,7 @@ PRIVATE void put_key(TTY* tty, u32 key)
  *                                tty_dev_read
  *****************************************************************************/
 /**
- * Get chars from the keyboard buffer if the TTY::console is the `current'
- * console.
+ * 从键盘缓冲得到字符如果TTY::console是当前的控制台
  *
  * @see keyboard_read()
  * 
@@ -242,7 +237,7 @@ PRIVATE void tty_dev_read(TTY* tty)
  *                                tty_dev_write
  *****************************************************************************/
 /**
- * Echo the char just pressed and transfer it to the waiting process.
+ * 回显刚刚键入的字符
  * 
  * @param tty   Ptr to a TTY struct.
  *****************************************************************************/
@@ -256,7 +251,7 @@ PRIVATE void tty_dev_write(TTY* tty)
 		tty->ibuf_cnt--;
 
 		if (tty->tty_left_cnt) {
-			if (ch >= ' ' && ch <= '~') { /* printable */
+			if (ch >= ' ' && ch <= '~') { /*可打印的 */
 				out_char(tty->console, ch);
 				void * p = tty->tty_req_buf +
 					   tty->tty_trans_cnt;
@@ -288,24 +283,23 @@ PRIVATE void tty_dev_write(TTY* tty)
  *                                tty_do_read
  *****************************************************************************/
 /**
- * Invoked when task TTY receives DEV_READ message.
+ * 当TTY任务接收到DEV_READ消息时被调动
  *
- * @note The routine will return immediately after setting some members of
- * TTY struct, telling FS to suspend the proc who wants to read. The real
- * transfer (tty buffer -> proc buffer) is not done here.
+ * @该函数会在设置TTY结构体的一些成员，告诉文件系统去阻塞请求读的进程后立刻返回。
+ * 真正处理(tty buffer -> proc buffer)的函数不在这里.
  * 
  * @param tty  From which TTY the caller proc wants to read.
  * @param msg  The MESSAGE just received.
  *****************************************************************************/
 PRIVATE void tty_do_read(TTY* tty, MESSAGE* msg)
 {
-	/* tell the tty: */
-	tty->tty_caller   = msg->source;  /* who called, usually FS */
-	tty->tty_procnr   = msg->PROC_NR; /* who wants the chars */
+	/* 通知tty: */
+	tty->tty_caller   = msg->source;  /* 是谁调用的，一般来说是文件系统 */
+	tty->tty_procnr   = msg->PROC_NR; /* 请求的进程号*/
 	tty->tty_req_buf  = va2la(tty->tty_procnr,
-				  msg->BUF);/* where the chars should be put */
-	tty->tty_left_cnt = msg->CNT; /* how many chars are requested */
-	tty->tty_trans_cnt= 0; /* how many chars have been transferred */
+				  msg->BUF);/*字符输出到哪里 */
+	tty->tty_left_cnt = msg->CNT; /*需要多少个字符 */
+	tty->tty_trans_cnt= 0; /* 已经传输的字符数量 */
 
 	msg->type = SUSPEND_PROC;
 	msg->CNT = tty->tty_left_cnt;
@@ -317,7 +311,7 @@ PRIVATE void tty_do_read(TTY* tty, MESSAGE* msg)
  *                                tty_do_write
  *****************************************************************************/
 /**
- * Invoked when task TTY receives DEV_WRITE message.
+ * 在TTY任务接收到DEV_WRITE消息时被调用
  * 
  * @param tty  To which TTY the calller proc is bound.
  * @param msg  The MESSAGE.
@@ -347,8 +341,7 @@ PRIVATE void tty_do_write(TTY* tty, MESSAGE* msg)
  *                                sys_printx
  *****************************************************************************/
 /**
- * System calls accept four parameters. `printx' needs only two, so it wastes
- * the other two.
+ * 系统调用支持四个参数`printx' 只需要两个
  *
  * @note `printx' accepts only one parameter -- `char* s', the other one --
  * `struct proc * proc' -- is pushed by kernel.asm::sys_call so that the
@@ -443,7 +436,7 @@ PUBLIC int sys_printx(int _unused1, int _unused2, char* s, struct proc* p_proc)
  *                                dump_tty_buf
  *****************************************************************************/
 /**
- * For debug only.
+ * 仅仅是debug用的
  * 
  *****************************************************************************/
 PUBLIC void dump_tty_buf()
