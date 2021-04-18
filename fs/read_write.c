@@ -23,20 +23,19 @@
  *                                do_rdwt
  *****************************************************************************/
 /**
- * Read/Write file and return byte count read/written.
+ * 读写文件，并返回成功读写的字节的数量
  *
- * Sector map is not needed to update, since the sectors for the file have been
- * allocated and the bits are set when the file was created.
+ * 不需要更新sector-map
  * 
  * @return How many bytes have been read/written.
  *****************************************************************************/
 PUBLIC int do_rdwt()
 {
-	int fd = fs_msg.FD;	/**< file descriptor. */
-	void * buf = fs_msg.BUF;/**< r/w buffer */
-	int len = fs_msg.CNT;	/**< r/w bytes */
+	int fd = fs_msg.FD;	/**< 文件描述符. */
+	void * buf = fs_msg.BUF;/**< 缓冲区 */
+	int len = fs_msg.CNT;	/**< 字节数 */
 
-	int src = fs_msg.source;		/* caller proc nr. */
+	int src = fs_msg.source;		/* 调用者的进程号. */
 
 	assert((pcaller->filp[fd] >= &f_desc_table[0]) &&
 	       (pcaller->filp[fd] < &f_desc_table[NR_FILE_DESC]));
@@ -76,7 +75,7 @@ PUBLIC int do_rdwt()
 		int pos_end;
 		if (fs_msg.type == READ)
 			pos_end = min(pos + len, pin->i_size);
-		else		/* WRITE */
+		else		/* 写 */
 			pos_end = min(pos + len, pin->i_nr_sects * SECTOR_SIZE);
 
 		int off = pos % SECTOR_SIZE;
@@ -90,7 +89,7 @@ PUBLIC int do_rdwt()
 		int bytes_left = len;
 		int i;
 		for (i = rw_sect_min; i <= rw_sect_max; i += chunk) {
-			/* read/write this amount of bytes every time */
+			/* 每次读写这么多字节 */
 			int bytes = min(bytes_left, chunk * SECTOR_SIZE - off);
 			rw_sector(DEV_READ,
 				  pin->i_dev,
@@ -104,7 +103,7 @@ PUBLIC int do_rdwt()
 					  (void*)va2la(TASK_FS, fsbuf + off),
 					  bytes);
 			}
-			else {	/* WRITE */
+			else {	/* 写 */
 				phys_copy((void*)va2la(TASK_FS, fsbuf + off),
 					  (void*)va2la(src, buf + bytes_rw),
 					  bytes);
@@ -122,9 +121,9 @@ PUBLIC int do_rdwt()
 		}
 
 		if (pcaller->filp[fd]->fd_pos > pin->i_size) {
-			/* update inode::size */
+			/* 更新inode中的size */
 			pin->i_size = pcaller->filp[fd]->fd_pos;
-			/* write the updated i-node back to disk */
+			/* 将更新后的inode的内容写回硬盘 */
 			sync_inode(pin);
 		}
 
