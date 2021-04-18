@@ -91,7 +91,7 @@ PUBLIC int kernel_main()
 				  (k_base + k_limit) >> LIMIT_4K_SHIFT,
 				  DA_32 | DA_LIMIT_4K | DA_DRW | priv << 5);
 		}
-
+		
 		p->regs.cs = INDEX_LDT_C << 3 |	SA_TIL | rpl;
 		p->regs.ds =
 			p->regs.es =
@@ -123,10 +123,10 @@ PUBLIC int kernel_main()
 
 	p_proc_ready	= proc_table;
 
-	init_clock();
-        init_keyboard();
+	init_clock();/* 初始化时钟 */
+        init_keyboard();/* 初始化键盘 */
 
-	restart();
+	restart();/* restart()定义在kernel.asm中 */
 
 	while(1){}
 }
@@ -228,7 +228,7 @@ void untar(const char * filename)
  *****************************************************************************/
 /**
  * A very very simple shell.
- * 
+ * 一个简单的shell程序，能够处理用户的输入
  * @param tty_name  TTY file name.
  *****************************************************************************/
 void shabby_shell(const char * tty_name)
