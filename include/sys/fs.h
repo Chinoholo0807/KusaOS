@@ -26,18 +26,19 @@ struct dev_drv_map {
  * @struct super_block fs.h "include/fs.h"
  * @brief  The 2nd sector of the FS
  *
- * Remember to change SUPER_BLOCK_SIZE if the members are changed.
+ * 超级块结构体
+ * 如果有成员改动就需要修改SUPER_BLOCK_SIZE！！！！！
  */
 struct super_block {
-	u32	magic;		  /**< Magic number */
-	u32	nr_inodes;	  /**< How many inodes */
-	u32	nr_sects;	  /**< How many sectors */
-	u32	nr_imap_sects;	  /**< How many inode-map sectors */
-	u32	nr_smap_sects;	  /**< How many sector-map sectors */
-	u32	n_1st_sect;	  /**< Number of the 1st data sector */
-	u32	nr_inode_sects;   /**< How many inode sectors */
-	u32	root_inode;       /**< Inode nr of root directory */
-	u32	inode_size;       /**< INODE_SIZE */
+	u32	magic;		  /**< 魔数 */
+	u32	nr_inodes;	  /**< 最多inode数目 */
+	u32	nr_sects;	  /**< 扇区数目 */
+	u32	nr_imap_sects;	  /**< inode-map占用的扇区数 */
+	u32	nr_smap_sects;	  /**< sector-map占用的扇区数 */
+	u32	n_1st_sect;	  /**< 第一个数据扇区的扇区号 */
+	u32	nr_inode_sects;   /**< inode_array占用多少扇区 */
+	u32	root_inode;       /**< 根目录区的i-node号是多少 */
+	u32	inode_size;       /**< INODE大小 */
 	u32	inode_isize_off;  /**< Offset of `struct inode::i_size' */
 	u32	inode_start_off;  /**< Offset of `struct inode::i_start_sect' */
 	u32	dir_ent_size;     /**< DIR_ENTRY_SIZE */
@@ -45,7 +46,7 @@ struct super_block {
 	u32	dir_ent_fname_off;/**< Offset of `struct dir_entry::name' */
 
 	/*
-	 * the following item(s) are only present in memory
+	 * 这个部分只存在于内存中
 	 */
 	int	sb_dev; 	/**< the super block's home device */
 };
@@ -54,8 +55,8 @@ struct super_block {
  * @def   SUPER_BLOCK_SIZE
  * @brief The size of super block \b in \b the \b device.
  *
- * Note that this is the size of the struct in the device, \b NOT in memory.
- * The size in memory is larger because of some more members.
+ * 超级块在设备里的大小，而不是内存中的大小
+ * 因为有只存在于内存中的部分，所以实际结构体的size会大一点
  */
 #define	SUPER_BLOCK_SIZE	56
 
@@ -63,68 +64,66 @@ struct super_block {
  * @struct inode
  * @brief  i-node
  *
- * The \c start_sect and\c nr_sects locate the file in the device,
- * and the size show how many bytes is used.
- * If <tt> size < (nr_sects * SECTOR_SIZE) </tt>, the rest bytes
- * are wasted and reserved for later writing.
- *
- * \b NOTE: Remember to change INODE_SIZE if the members are changed
+ * start_sect和nr_sects定位文件在设备中的位置
+ * size为占用的字节数
+ * 如果size < (nr_sects * SECTOR_SIZE)那么剩下的用于后边再写内容
+ * 如果成员改了，就需要修改INODE_SIZE！！！！
  */
 struct inode {
-	u32	i_mode;		/**< Accsess mode */
-	u32	i_size;		/**< File size */
-	u32	i_start_sect;	/**< The first sector of the data */
-	u32	i_nr_sects;	/**< How many sectors the file occupies */
+	u32	i_mode;		/**< 区分文件类型 */
+	u32	i_size;		/**< 文件大小 */
+	u32	i_start_sect;	/**< 文件的起始扇区 */
+	u32	i_nr_sects;	/**< 总扇区数 */
 	u8	_unused[16];	/**< Stuff for alignment */
 
-	/* the following items are only present in memory */
+	/* 只存在于内存里的部分 */
 	int	i_dev;
-	int	i_cnt;		/**< How many procs share this inode  */
-	int	i_num;		/**< inode nr.  */
+	int	i_cnt;		/**< 共享这个inode的进程数量  */
+	int	i_num;		/**< inode编号.  */
 };
 
 /**
  * @def   INODE_SIZE
  * @brief The size of i-node stored \b in \b the \b device.
  *
- * Note that this is the size of the struct in the device, \b NOT in memory.
- * The size in memory is larger because of some more members.
+ * inode在设备里的大小，而不是内存中的大小
+ * 因为有只存在于内存中的部分，所以实际结构体的size会大一点
  */
 #define	INODE_SIZE	32
 
 /**
  * @def   MAX_FILENAME_LEN
- * @brief Max len of a filename
+ * @brief 文件名的最大长度
  * @see   dir_entry
  */
 #define	MAX_FILENAME_LEN	12
 
 /**
  * @struct dir_entry
- * @brief  Directory Entry
+ * @brief  目录项
  */
 struct dir_entry {
-	int	inode_nr;		/**< inode nr. */
-	char	name[MAX_FILENAME_LEN];	/**< Filename */
+	int	inode_nr;		/**< inode编号. */
+	char	name[MAX_FILENAME_LEN];	/**< 文件名 */
 };
 
 /**
  * @def   DIR_ENTRY_SIZE
- * @brief The size of directory entry in the device.
+ * @brief 目录项在设备中的大小
  *
- * It is as same as the size in memory.
+ * 和在内存中的大小一致
  */
 #define	DIR_ENTRY_SIZE	sizeof(struct dir_entry)
 
 /**
  * @struct file_desc
- * @brief  File Descriptor
+ * @brief  文件描述符
  */
 struct file_desc {
-	int		fd_mode;	/**< R or W */
-	int		fd_pos;		/**< Current position for R/W. */
-	int		fd_cnt;		/**< How many procs share this desc */
-	struct inode*	fd_inode;	/**< Ptr to the i-node */
+	int		fd_mode;	/**< 读或写*/
+	int		fd_pos;		/**< 当前读写位置. */
+	int		fd_cnt;		/**< 多少进程共用 */
+	struct inode*	fd_inode;	/**< 指向inode的指针 */
 };
 
 
