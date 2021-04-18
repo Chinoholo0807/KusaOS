@@ -23,10 +23,10 @@
  *                                do_unlink
  *****************************************************************************/
 /**
- * Remove a file.
+ * 删除一个文件
  *
- * @note We clear the i-node in inode_array[] although it is not really needed.
- *       We don't clear the data bytes so the file is recoverable.
+ * @我们清除了inode-array里的inode，尽管这并不是必要的
+ *     没有删除数据区的内容，所以文件是可恢复的
  * 
  * @return On success, zero is returned.  On error, -1 is returned.
  *****************************************************************************/
@@ -34,9 +34,9 @@ PUBLIC int do_unlink()
 {
 	char pathname[MAX_PATH];
 
-	/* get parameters from the message */
-	int name_len = fs_msg.NAME_LEN;	/* length of filename */
-	int src = fs_msg.source;	/* caller proc nr. */
+	/* 从message获取参数 */
+	int name_len = fs_msg.NAME_LEN;	/* 文件名的长度 */
+	int src = fs_msg.source;	/* 调用者的进程号. */
 	assert(name_len < MAX_PATH);
 	phys_copy((void*)va2la(TASK_FS, pathname),
 		  (void*)va2la(src, fs_msg.PATHNAME),
@@ -49,7 +49,7 @@ PUBLIC int do_unlink()
 	}
 
 	int inode_nr = search_file(pathname);
-	if (inode_nr == INVALID_INODE) {	/* file not found */
+	if (inode_nr == INVALID_INODE) {	/* 文件没有找到 */
 		printl("{FS} FS::do_unlink():: search_file() returns "
 			"invalid inode: %s\n", pathname);
 		return -1;
@@ -62,14 +62,14 @@ PUBLIC int do_unlink()
 
 	struct inode * pin = get_inode(dir_inode->i_dev, inode_nr);
 
-	if (pin->i_mode != I_REGULAR) { /* can only remove regular files */
+	if (pin->i_mode != I_REGULAR) { /* 只能删除普通文件 */
 		printl("{FS} cannot remove file %s, because "
 		       "it is not a regular file.\n",
 		       pathname);
 		return -1;
 	}
 
-	if (pin->i_cnt > 1) {	/* the file was opened */
+	if (pin->i_cnt > 1) {	/* 当前文件正在被打开 */
 		printl("{FS} cannot remove file %s, because pin->i_cnt is %d.\n",
 		       pathname, pin->i_cnt);
 		return -1;
@@ -78,19 +78,19 @@ PUBLIC int do_unlink()
 	struct super_block * sb = get_super_block(pin->i_dev);
 
 	/*************************/
-	/* free the bit in i-map */
+	/* 释放inode-map中的bit位 */
 	/*************************/
 	int byte_idx = inode_nr / 8;
 	int bit_idx = inode_nr % 8;
-	assert(byte_idx < SECTOR_SIZE);	/* we have only one i-map sector */
-	/* read sector 2 (skip bootsect and superblk): */
+	assert(byte_idx < SECTOR_SIZE);	/* 我们的inode-map只有一个扇区 */
+	/* 读取扇区2 (跳过bootsect 和超级块): */
 	RD_SECT(pin->i_dev, 2);
 	assert(fsbuf[byte_idx % SECTOR_SIZE] & (1 << bit_idx));
 	fsbuf[byte_idx % SECTOR_SIZE] &= ~(1 << bit_idx);
 	WR_SECT(pin->i_dev, 2);
 
 	/**************************/
-	/* free the bits in s-map */
+	/* 释放sector-map中的bit位 */
 	/**************************/
 	/*
 	 *           bit_idx: bit idx in the entire i-map
@@ -109,22 +109,22 @@ PUBLIC int do_unlink()
 	int bits_left = pin->i_nr_sects;
 	int byte_cnt = (bits_left - (8 - (bit_idx % 8))) / 8;
 
-	/* current sector nr. */
+	/* 当前sector编号 */
 	int s = 2  /* 2: bootsect + superblk */
 		+ sb->nr_imap_sects + byte_idx / SECTOR_SIZE;
 
 	RD_SECT(pin->i_dev, s);
 
 	int i;
-	/* clear the first byte */
+	/* 清除第一个字节 */
 	for (i = bit_idx % 8; (i < 8) && bits_left; i++,bits_left--) {
 		assert((fsbuf[byte_idx % SECTOR_SIZE] >> i & 1) == 1);
 		fsbuf[byte_idx % SECTOR_SIZE] &= ~(1 << i);
 	}
 
-	/* clear bytes from the second byte to the second to last */
+	/* 清除剩余的字节（除了最后一个） */
 	int k;
-	i = (byte_idx % SECTOR_SIZE) + 1;	/* the second byte */
+	i = (byte_idx % SECTOR_SIZE) + 1;	/* 第二个字节 */
 	for (k = 0; k < byte_cnt; k++,i++,bits_left-=8) {
 		if (i == SECTOR_SIZE) {
 			i = 0;
@@ -135,7 +135,7 @@ PUBLIC int do_unlink()
 		fsbuf[i] = 0;
 	}
 
-	/* clear the last byte */
+	/* 清除最后一个字节 */
 	if (i == SECTOR_SIZE) {
 		i = 0;
 		WR_SECT(pin->i_dev, s);
@@ -147,18 +147,18 @@ PUBLIC int do_unlink()
 	WR_SECT(pin->i_dev, s);
 
 	/***************************/
-	/* clear the i-node itself */
+	/* 清除inode */
 	/***************************/
 	pin->i_mode = 0;
 	pin->i_size = 0;
 	pin->i_start_sect = 0;
 	pin->i_nr_sects = 0;
 	sync_inode(pin);
-	/* release slot in inode_table[] */
+	/* 释放内存中inode_table[]对应的项 */
 	put_inode(pin);
 
 	/************************************************/
-	/* set the inode-nr to 0 in the directory entry */
+	/* 将对应目录项中的inode编号设为0 */
 	/************************************************/
 	int dir_blk0_nr = dir_inode->i_start_sect;
 	int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE) / SECTOR_SIZE;
@@ -194,12 +194,12 @@ PUBLIC int do_unlink()
 				dir_size += DIR_ENTRY_SIZE;
 		}
 
-		if (m > nr_dir_entries || /* all entries have been iterated OR */
-		    flg) /* file is found */
+		if (m > nr_dir_entries || /* 已经遍历所有项或者 */
+		    flg) /* 文件被找到 */
 			break;
 	}
 	assert(flg);
-	if (m == nr_dir_entries) { /* the file is the last one in the dir */
+	if (m == nr_dir_entries) { /* 文件是目录中的最后一个 */
 		dir_inode->i_size = dir_size;
 		sync_inode(dir_inode);
 	}
