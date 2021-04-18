@@ -58,7 +58,7 @@ printf(fmt, i, j);
  *                                printf
  *****************************************************************************/
 /**
- * The most famous one.
+ * 最著名的那个
  *
  * @note do not call me in any TASK, call me in USER PROC.
  * 
@@ -84,7 +84,7 @@ PUBLIC int printf(const char *fmt, ...)
  *                                printl
  *****************************************************************************/
 /**
- * low level print
+ * 低版本的print
  * 
  * @param fmt  The format string
  * 
