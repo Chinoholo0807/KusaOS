@@ -1,7 +1,7 @@
 /*************************************************************************//**
  *****************************************************************************
  * @file   global.c
- * @brief  
+ * @brief  一些全局变量/函数的具体定义
  *****************************************************************************
  *****************************************************************************/
 
@@ -18,10 +18,10 @@
 #include "global.h"
 #include "proto.h"
 
-
+/* 实例化后的进程表，包括系统进程和用户进程 */
 PUBLIC	struct proc proc_table[NR_TASKS + NR_PROCS];
 
-/* 注意下面的 TASK 的顺序要与 const.h 中对应 */
+/* 注意下面的 TASK 的顺序要与 const.h 中对应，这个是系统进程的task表 */
 PUBLIC	struct task	task_table[NR_TASKS] = {
 	/* entry        stack size        task name */
 	/* -----        ----------        --------- */
@@ -30,7 +30,7 @@ PUBLIC	struct task	task_table[NR_TASKS] = {
 	{task_hd,       STACK_SIZE_HD,    "HD"        },
 	{task_fs,       STACK_SIZE_FS,    "FS"        },
 	{task_mm,       STACK_SIZE_MM,    "MM"        }};
-
+/* 用户进程的task表 */
 PUBLIC	struct task	user_proc_table[NR_NATIVE_PROCS] = {
 	/* entry    stack size     proc name */
 	/* -----    ----------     --------- */
@@ -49,7 +49,7 @@ PUBLIC	TTY		tty_table[NR_CONSOLES];
 PUBLIC	CONSOLE		console_table[NR_CONSOLES];
 
 PUBLIC	irq_handler	irq_table[NR_IRQ];
-
+/* 系统调用表 */
 PUBLIC	system_call	sys_call_table[NR_SYS_CALL] = {sys_printx,
 						       sys_sendrec};
 
