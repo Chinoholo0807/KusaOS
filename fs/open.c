@@ -32,27 +32,27 @@ PRIVATE void new_dir_entry(struct inode * dir_inode, int inode_nr, char * filena
  *                                do_open
  *****************************************************************************/
 /**
- * Open a file and return the file descriptor.
+ * 打开一个文件，并返回一个它的文件描述符
  * 
  * @return File descriptor if successful, otherwise a negative error code.
  *****************************************************************************/
 PUBLIC int do_open()
 {
-	int fd = -1;		/* return value */
+	int fd = -1;		/* 返回值 */
 
 	char pathname[MAX_PATH];
 
-	/* get parameters from the message */
-	int flags = fs_msg.FLAGS;	/* access mode */
-	int name_len = fs_msg.NAME_LEN;	/* length of filename */
-	int src = fs_msg.source;	/* caller proc nr. */
+	/* 从msg中获取参数 */
+	int flags = fs_msg.FLAGS;	/* 模式 */
+	int name_len = fs_msg.NAME_LEN;	/* 文件长度 */
+	int src = fs_msg.source;	/* 调用者的进程号. */
 	assert(name_len < MAX_PATH);
 	phys_copy((void*)va2la(TASK_FS, pathname),
 		  (void*)va2la(src, fs_msg.PATHNAME),
 		  name_len);
 	pathname[name_len] = 0;
 
-	/* find a free slot in PROCESS::filp[] */
+	/* 在PROCESS::filp[]找到空闲的地方 */
 	int i;
 	for (i = 0; i < NR_FILES; i++) {
 		if (pcaller->filp[i] == 0) {
@@ -63,7 +63,7 @@ PUBLIC int do_open()
 	if ((fd < 0) || (fd >= NR_FILES))
 		panic("filp[] is full (PID:%d)", proc2pid(pcaller));
 
-	/* find a free slot in f_desc_table[] */
+	/* 在f_desc_table[]中找到空闲的地方 */
 	for (i = 0; i < NR_FILE_DESC; i++)
 		if (f_desc_table[i].fd_inode == 0)
 			break;
@@ -93,10 +93,10 @@ PUBLIC int do_open()
 	}
 
 	if (pin) {
-		/* connects proc with file_descriptor */
+		/* 连接进程与文件描述符 */
 		pcaller->filp[fd] = &f_desc_table[i];
 
-		/* connects file_descriptor with inode */
+		/*连接文件描述符与inode */
 		f_desc_table[i].fd_inode = pin;
 
 		f_desc_table[i].fd_mode = flags;
@@ -134,7 +134,7 @@ PUBLIC int do_open()
  *                                create_file
  *****************************************************************************/
 /**
- * Create a file and return it's inode ptr.
+ * 创建一个文件，返回它的inode的指针
  *
  * @param[in] path   The full path of the new file
  * @param[in] flags  Attribiutes of the new file
@@ -166,7 +166,7 @@ PRIVATE struct inode * create_file(char * path, int flags)
  *                                do_close
  *****************************************************************************/
 /**
- * Handle the message CLOSE.
+ * 处理CLOSE消息
  * 
  * @return Zero if success.
  *****************************************************************************/
@@ -185,7 +185,7 @@ PUBLIC int do_close()
  *                                do_lseek
  *****************************************************************************/
 /**
- * Handle the message LSEEK.
+ * 处理LSEEK消息.
  * 
  * @return The new offset in bytes from the beginning of the file if successful,
  *         otherwise a negative number.
@@ -224,7 +224,7 @@ PUBLIC int do_lseek()
  *                                alloc_imap_bit
  *****************************************************************************/
 /**
- * Allocate a bit in inode-map.
+ * 在inode-map中分配一位，这也意味着新文件的i-node有了确定的位置
  * 
  * @param dev  In which device the inode-map is located.
  * 
@@ -235,7 +235,7 @@ PRIVATE int alloc_imap_bit(int dev)
 	int inode_nr = 0;
 	int i, j, k;
 
-	int imap_blk0_nr = 1 + 1; /* 1 boot sector & 1 super block */
+	int imap_blk0_nr = 1 + 1; /* boot sector和super block */
 	struct super_block * sb = get_super_block(dev);
 
 	for (i = 0; i < sb->nr_imap_sects; i++) {
@@ -247,7 +247,7 @@ PRIVATE int alloc_imap_bit(int dev)
 				continue;
 			/* skip `1' bits */
 			for (k = 0; ((fsbuf[j] >> k) & 1) != 0; k++) {}
-			/* i: sector index; j: byte index; k: bit index */
+			/* i: sector 号; j: byte 号; k: bit 号 */
 			inode_nr = (i * SECTOR_SIZE + j) * 8 + k;
 			fsbuf[j] |= (1 << k);
 			/* write the bit to imap */
@@ -258,7 +258,7 @@ PRIVATE int alloc_imap_bit(int dev)
 		return inode_nr;
 	}
 
-	/* no free bit in imap */
+	/*inode-map没有空闲的地方 */
 	panic("inode-map is probably full.\n");
 
 	return 0;
@@ -268,7 +268,7 @@ PRIVATE int alloc_imap_bit(int dev)
  *                                alloc_smap_bit
  *****************************************************************************/
 /**
- * Allocate a bit in sector-map.
+ * 在sector-map中分配多位，这也意味着为文件内容分配了扇区。
  * 
  * @param dev  In which device the sector-map is located.
  * @param nr_sects_to_alloc  How many sectors are allocated.
@@ -289,21 +289,21 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc)
 	int free_sect_nr = 0;
 
 	for (i = 0; i < sb->nr_smap_sects; i++) { /* smap_blk0_nr + i :
-						     current sect nr. */
+						     当前sector号. */
 		RD_SECT(dev, smap_blk0_nr + i);
 
 		/* byte offset in current sect */
 		for (j = 0; j < SECTOR_SIZE && nr_sects_to_alloc > 0; j++) {
 			k = 0;
 			if (!free_sect_nr) {
-				/* loop until a free bit is found */
+				/* 重复直到找到一个空闲bit */
 				if (fsbuf[j] == 0xFF) continue;
 				for (; ((fsbuf[j] >> k) & 1) != 0; k++) {}
 				free_sect_nr = (i * SECTOR_SIZE + j) * 8 +
 					k - 1 + sb->n_1st_sect;
 			}
 
-			for (; k < 8; k++) { /* repeat till enough bits are set */
+			for (; k < 8; k++) { /* 重复直到所需bit被写完 */
 				assert(((fsbuf[j] >> k) & 1) == 0);
 				fsbuf[j] |= (1 << k);
 				if (--nr_sects_to_alloc == 0)
@@ -311,7 +311,7 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc)
 			}
 		}
 
-		if (free_sect_nr) /* free bit found, write the bits to smap */
+		if (free_sect_nr) /* 找到了空闲的bit位，写进去 */
 			WR_SECT(dev, smap_blk0_nr + i);
 
 		if (nr_sects_to_alloc == 0)
@@ -327,7 +327,7 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc)
  *                                new_inode
  *****************************************************************************/
 /**
- * Generate a new i-node and write it to disk.
+ * 生成一个新的inode并写入硬盘
  * 
  * @param dev  Home device of the i-node.
  * @param inode_nr  I-node nr.
@@ -348,7 +348,7 @@ PRIVATE struct inode * new_inode(int dev, int inode_nr, int start_sect)
 	new_inode->i_cnt = 1;
 	new_inode->i_num = inode_nr;
 
-	/* write to the inode array */
+	/* 将它写入硬盘中的inode-array区 */
 	sync_inode(new_inode);
 
 	return new_inode;
@@ -358,7 +358,7 @@ PRIVATE struct inode * new_inode(int dev, int inode_nr, int start_sect)
  *                                new_dir_entry
  *****************************************************************************/
 /**
- * Write a new entry into the directory.
+ *在根目录中创建一个目录项
  * 
  * @param dir_inode  I-node of the directory.
  * @param inode_nr   I-node nr of the new file.
@@ -366,7 +366,7 @@ PRIVATE struct inode * new_inode(int dev, int inode_nr, int start_sect)
  *****************************************************************************/
 PRIVATE void new_dir_entry(struct inode *dir_inode,int inode_nr,char *filename)
 {
-	/* write the dir_entry */
+	/* 构造一个目录项 */
 	int dir_blk0_nr = dir_inode->i_start_sect;
 	int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE) / SECTOR_SIZE;
 	int nr_dir_entries =
@@ -389,25 +389,25 @@ PRIVATE void new_dir_entry(struct inode *dir_inode,int inode_nr,char *filename)
 			if (++m > nr_dir_entries)
 				break;
 
-			if (pde->inode_nr == 0) { /* it's a free slot */
+			if (pde->inode_nr == 0) { /* 是一个空的slot */
 				new_de = pde;
 				break;
 			}
 		}
-		if (m > nr_dir_entries ||/* all entries have been iterated or */
-		    new_de)              /* free slot is found */
+		if (m > nr_dir_entries ||/* 找完了所有项 */
+		    new_de)              /* 找到了空闲的 */
 			break;
 	}
-	if (!new_de) { /* reached the end of the dir */
+	if (!new_de) { /* 到达目录底部 */
 		new_de = pde;
 		dir_inode->i_size += DIR_ENTRY_SIZE;
 	}
 	new_de->inode_nr = inode_nr;
 	strcpy(new_de->name, filename);
 
-	/* write dir block -- ROOT dir block */
+	/* 写目录项 */
 	WR_SECT(dir_inode->i_dev, dir_blk0_nr + i);
 
-	/* update dir inode */
+	/* 更新inode结点 */
 	sync_inode(dir_inode);
 }
