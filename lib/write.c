@@ -21,7 +21,7 @@
  *                                write
  *****************************************************************************/
 /**
- * Write to a file descriptor.
+ * 使用文件描述符写文件
  * 
  * @param fd     File descriptor.
  * @param buf    Buffer including the bytes to write.
