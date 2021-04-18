@@ -22,7 +22,7 @@
  *                                read
  *****************************************************************************/
 /**
- * Read from a file descriptor.
+ * 从文件描述符读取文件
  * 
  * @param fd     File descriptor.
  * @param buf    Buffer to accept the bytes read.
