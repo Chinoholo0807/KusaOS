@@ -21,7 +21,7 @@
  *                                open
  *****************************************************************************/
 /**
- * open/create a file.
+ * 打开/创建一个文件
  * 
  * @param pathname  The full path of the file to be opened/created.
  * @param flags     O_CREAT, O_RDWR, etc.
