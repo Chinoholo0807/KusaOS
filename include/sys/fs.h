@@ -80,6 +80,9 @@ struct inode {
 	int	i_dev;
 	int	i_cnt;		/**< 共享这个inode的进程数量  */
 	int	i_num;		/**< inode编号.  */
+	
+	u32 i_node_length;            /**< sect lenghth */
+	u32 i_sects_pos[20];         /**< sect pos array */
 };
 
 /**
@@ -105,6 +108,9 @@ struct inode {
 struct dir_entry {
 	int	inode_nr;		/**< inode编号. */
 	char	name[MAX_FILENAME_LEN];	/**< 文件名 */
+	int     changed_time;
+	char 	pass[16];
+	char 	type;
 };
 
 /**
