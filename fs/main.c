@@ -49,6 +49,12 @@ PUBLIC void task_fs()
 		pcaller = &proc_table[src];
 
 		switch (msgtype) {
+		case LS:
+			fs_msg.RETVAL = do_ls();
+			break;
+		case MKDIR:
+			fs_msg.RETVAL = do_mkdir();
+			break;
 		case OPEN:
 			fs_msg.FD = do_open();
 			break;
@@ -71,9 +77,9 @@ PUBLIC void task_fs()
 		case EXIT:
 			fs_msg.RETVAL = fs_exit();
 			break;
-		/* case LSEEK: */
-		/* 	fs_msg.OFFSET = do_lseek(); */
-		/* 	break; */
+		case LSEEK: 
+		 	fs_msg.OFFSET = do_lseek(); 
+		 	break; 
 		case STAT:
 			fs_msg.RETVAL = do_stat();
 			break;
