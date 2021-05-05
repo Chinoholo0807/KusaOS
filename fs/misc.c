@@ -23,6 +23,53 @@
 #include "fs.h"
 
 /*****************************************************************************
+ *                                find_entry
+ *************************************************************************//**
+
+PUBLIC struct dir_entry * find_entry(char *path)
+{
+    int i, j;
+
+    char filename[MAX_PATH];
+    memset(filename, 0, MAX_FILENAME_LEN);
+    struct inode * dir_inode;
+    if (strip_path(filename, path, &dir_inode) != 0)
+        return 0;
+
+    if (filename[0] == 0)   /* path: "/" */
+        return dir_inode;
+
+    /**
+     * Search the dir for the file.
+     */
+    int dir_blk0_nr = dir_inode->i_start_sect;
+    int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    int nr_dir_entries =
+      dir_inode->i_size / DIR_ENTRY_SIZE; /**
+                           * including unused slots
+                           * (the file has been deleted
+                           * but the slot is still there)
+                           */
+    int m = 0;
+    struct dir_entry * pde;
+    for (i = 0; i < nr_dir_blks; i++) {
+        RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
+        pde = (struct dir_entry *)fsbuf;
+        for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
+            if (memcmp(filename, pde->name, MAX_FILENAME_LEN) == 0)
+                return pde;
+            if (++m > nr_dir_entries)
+                break;
+        }
+        if (m > nr_dir_entries) /* all entries have been iterated */
+            break;
+    }
+
+    /* file not found */
+    return 0;
+}
+
+/*****************************************************************************
  *                                do_stat
  *************************************************************************//**
  * Perform the stat() syscall.
@@ -187,5 +234,65 @@ PUBLIC int strip_path(char * filename, const char * pathname,
 	*ppinode = root_inode;
 
 	return 0;
+}
+
+/* show all the files */
+PUBLIC char** show_file(char** all_f)
+{
+	int i, j;
+	char filename[MAX_PATH];
+	/*char *all_f [20];*/ /* 最多19个files , store全部file的array*/
+	char fileend [4];/*表示全部file结束的标志*/ 
+	memset(fileend,0,sizeof(fileend));
+	char end[4] = "end";
+	const char *ss = end;
+	char *tt = fileend;
+	while (*ss) {		/* check each character */
+		*tt++ = *ss++;
+	}
+	all_f[19] = fileend;
+	/*memset(filename,0,MAX_FILENAME_LEN);*/
+	struct inode * dir_inode;
+	char path[5]="/test";
+	if (strip_path(filename, path, &dir_inode) != 0)
+	if (filename[0] == 0)	
+		return dir_inode->i_num;
+	int dir_blk0_nr = dir_inode->i_start_sect;
+	int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
+	int nr_dir_entries =
+	  dir_inode->i_size / DIR_ENTRY_SIZE; /**
+					       * including unused slots
+					       * (the file has been deleted
+					       * but the slot is still there)
+					       */
+	int m = 0;
+	struct dir_entry * pde;
+	int filenum = 0;
+	for (i = 0; i < nr_dir_blks; i++) {
+		RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
+		pde = (struct dir_entry *)fsbuf;
+		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
+			if(memcmp("",pde->name, MAX_FILENAME_LEN)!=0){
+				char eachf[MAX_PATH];
+				memset(eachf,0,sizeof(eachf)); 
+				const char *s = pde->name;
+				char *t = eachf;
+				while (*s) {		/* check each character */
+					*t++ = *s++;
+				}
+				printl("%s\n",pde->name);
+				all_f[filenum]=eachf;
+				filenum++;
+			}/*将filename放入eachf*/
+			if(filenum==19)
+				return all_f;
+			if (++m > nr_dir_entries)
+				break;
+		}
+		if (m > nr_dir_entries) /* all entries have been iterated */
+			break;
+	}
+	all_f[filenum] = fileend;
+	return all_f;
 }
 
