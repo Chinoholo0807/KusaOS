@@ -144,5 +144,7 @@ PUBLIC int	stat		(const char *path, struct stat *buf);
 /* lib/syslog.c */
 PUBLIC	int	syslog		(const char *fmt, ...);
 
+/* lib/pstat.c */
+PUBLIC int pstat();
 
 #endif /* _ORANGES_STDIO_H_ */
