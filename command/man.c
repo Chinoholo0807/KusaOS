@@ -8,17 +8,16 @@
  */
 #include "type.h"
 #include "stdio.h"
-
 int main(int argc, char * argv[])
 {
-    printf("   |=========================================================================|\n");
+	printf("   |=========================================================================|\n");
     printf("   |============                    K  U  S  A                    ===========|\n");
     printf("   |=========================================================================|\n");
     printf("   |                                                                         |\n");
     printf("   |************************* COMMANDS FOR SYSTEM ***************************|\n");
-    printf("   |                               man  : Look up the KusaOS's command       |\n");
+    printf("   |                            +  man  : Look up the KusaOS's command       |\n");
     printf("   |                              clear : Clear the screen                   |\n");
-    printf("   |                            process : Show process manager               |\n");
+    printf("   |                            +   ps : Show process state                 |\n");
     printf("   |************************* COMMANDS FOR FILE SYSTEM **********************|\n");
     printf("   |                                 ls : List files in current directory    |\n");
     printf("   |                              touch : Create a new file                  |\n");
@@ -31,5 +30,6 @@ int main(int argc, char * argv[])
     printf("   |                             testmm : Test for MM                        |\n");
     printf("   |                           testproc : Test for proc                      |\n");
     printf("   |=========================================================================|\n");
-    return 0;
+	return 0;
 }
+
