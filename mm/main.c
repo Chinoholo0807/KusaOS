@@ -60,6 +60,9 @@ PUBLIC void task_mm()
 			do_wait();
 			reply = 0;
 			break;
+		case PSTAT:
+			print_proc_state();
+			break;
 		default:
 			dump_msg("MM::unknown msg", &mm_msg);
 			assert(0);
@@ -133,5 +136,37 @@ PUBLIC int alloc_mem(int pid, int memsize)
 
 PUBLIC int free_mem(int pid)
 {
+	return 0;
+}
+
+
+/*****************************************************************************
+ *****************************************************************************
+ * print_proc_state()
+ * 功能:打印进程状态
+ *  
+ * 返回值:0
+ *****************************************************************************
+ *****************************************************************************/
+PUBLIC int print_proc_state()
+{
+	int i;
+	printl("=============================================================================\n");
+    printl("   type    |    pid    |    name   | spriority |  state\n");
+	for (i = 0; i < NR_TASKS + NR_PROCS; i++) {
+		
+		if (i < NR_TASKS ) { /* TASK */
+			printl("   TASK    ");
+			printl("%12d%12s%12d%12d\n", i, proc_table[i].name, 		
+										proc_table[i].priority,proc_table[i].p_flags);
+		}
+		else{ /* USER_PROC */
+			if(proc_table[i].p_flags==FREE_SLOT)
+				continue;
+			printl(" USER_PROC ");
+        	printl("%12d%12s%12d%12d\n", i, proc_table[i].name, 		
+											proc_table[i].priority,proc_table[i].p_flags);
+		}
+	}	
 	return 0;
 }
