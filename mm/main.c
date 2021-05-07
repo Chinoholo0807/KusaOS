@@ -26,6 +26,7 @@ PUBLIC void do_fork_test();
 PRIVATE void init_mm();
 
 
+
 /*****************************************************************************
  *****************************************************************************
  * task_mm()
@@ -67,11 +68,13 @@ PUBLIC void task_mm()
 			break;
 		case MSTAT:
 			tmp=mm_msg.u.m1.m1i1;
-			//printf("main.c %d\n",tmp);
 			print_proc_memory(tmp);
 			break;
 		case TOTAL:
 			printl("{MM} memsize:%dMB\n", memory_size / (1024 * 1024));
+			break;
+		case BUDDY:
+			do_buddy();
 			break;
 		default:
 			dump_msg("MM::unknown msg", &mm_msg);
@@ -117,6 +120,10 @@ PRIVATE void init_mm()
 
 PUBLIC int alloc_mem(int pid, int memsize)
 {
+	if(pid<0)
+	{
+		return alloc(-pid,memsize);
+	}
 	assert(pid >= (NR_TASKS + NR_NATIVE_PROCS));
 	if (memsize > PROC_IMAGE_SIZE_DEFAULT) {
 		panic("unsupported memory request: %d. "
@@ -185,6 +192,72 @@ PUBLIC int print_proc_memory(int pid)
 {
 	int base = PROCS_BASE +
 		(pid - (NR_TASKS + NR_NATIVE_PROCS)) * PROC_IMAGE_SIZE_DEFAULT;
-	printl("pid: %d   mem_base: %d\n",pid,base);
+	printl("pid: %d   mem_base: %08xH\n",pid,base);
+	return 0;
+}
+
+int mem_buf[BUDDY_SIZE * 2];
+
+PUBLIC void set_child(int i)			//对子结点标记
+{
+	if (i < BUDDY_SIZE * 2 - 1)
+	{
+		mem_buf[i] = 1;
+		set_child(2*i+1);
+		set_child(2*i+2);
+	}
+}
+
+PUBLIC void set_parent(int i)			//对父节点标记
+{
+	int p =(i-1)/2;
+	while (p >= 0)
+	{
+		mem_buf[p] = 1;
+		if (p == 0) return;
+		p = (p-1)/2;
+	}
+}
+
+
+PUBLIC int alloc(int seq,int sz)		
+{
+	//index是对应二叉树的结点编号，addr是内存起始地址
+	//cur_sz表示分配内存块的实际大小（包含了碎片部分）
+	int index = 0, cur_sz = BUDDY_SIZE, addr = 0, i;
+	for (cur_sz = BUDDY_SIZE; cur_sz / 2 >= sz; cur_sz /= 2)
+		index = 2*index+1;
+
+	for (i = index; i <= index * 2; i++, addr += cur_sz)
+	{
+		if (!mem_buf[i])
+		{
+			set_child(i);
+			set_parent(i);
+			return addr;
+		}
+	}
+
+/*	内存不够
+	if (i > index * 2)
+	{
+		printf("内存空间不够!\n");
+		return -1;
+	}*/
+}
+
+PUBLIC int do_buddy()
+{
+	//待修改，随机数生成4~32
+	int page_cnt[11]={0,23,8,16,32,5,9,4,11,29,21};
+	int i;
+	for(i=0;i<BUDDY_SIZE * 2;i++)
+		mem_buf[i]=0;
+	for(i=1;i<=10;i++)
+	{
+		int addr=alloc_mem(-i,page_cnt[i]);
+		int trueaddr=addr*1024+PAGE_START;
+		printl("size: %d      addr: %08xH\n",page_cnt[i],trueaddr);
+	}
 	return 0;
 }
