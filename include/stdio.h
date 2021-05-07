@@ -147,4 +147,10 @@ PUBLIC	int	syslog		(const char *fmt, ...);
 /* lib/pstat.c */
 PUBLIC int pstat();
 
+/* lib/mstat.c */
+PUBLIC int mstat(int pid);
+
+/* lib/mstat.c */
+PUBLIC int totalmm();
+
 #endif /* _ORANGES_STDIO_H_ */
