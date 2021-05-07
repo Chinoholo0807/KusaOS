@@ -262,12 +262,20 @@ void shabby_shell(const char * tty_name)
 		} while(ch);
 		argv[argc++]=current_dirr;
 		argv[argc] = 0;
-
+		
+		if(argc==1)
+                        continue;
+		
 		if(strcmp(argv[0],"pwd")==0){
 			printf("%s\n",current_dirr);
 		}
 		else if (strcmp(argv[0],"cd")==0){
-			printf("will do cd\n");
+			if(argc!=3){
+                                printf("ERROR PARAMETAR NUM\n");
+                                continue;
+                        }
+                        int isdir = is_dir(argv[1]);
+                        printf("isdir = %d\n",isdir);
 		}
 		else {
 			int fd = open(argv[0], O_RDWR);
