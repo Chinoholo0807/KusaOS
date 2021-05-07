@@ -44,6 +44,8 @@ PUBLIC void task_mm()
 		int reply = 1;
 
 		int msgtype = mm_msg.type;
+		int tmp=0;
+
 
 		switch (msgtype) {
 		case FORK:
@@ -62,6 +64,14 @@ PUBLIC void task_mm()
 			break;
 		case PSTAT:
 			print_proc_state();
+			break;
+		case MSTAT:
+			tmp=mm_msg.u.m1.m1i1;
+			//printf("main.c %d\n",tmp);
+			print_proc_memory(tmp);
+			break;
+		case TOTAL:
+			printl("{MM} memsize:%dMB\n", memory_size / (1024 * 1024));
 			break;
 		default:
 			dump_msg("MM::unknown msg", &mm_msg);
@@ -168,5 +178,13 @@ PUBLIC int print_proc_state()
 											proc_table[i].priority,proc_table[i].p_flags);
 		}
 	}	
+	return 0;
+}
+
+PUBLIC int print_proc_memory(int pid)
+{
+	int base = PROCS_BASE +
+		(pid - (NR_TASKS + NR_NATIVE_PROCS)) * PROC_IMAGE_SIZE_DEFAULT;
+	printl("pid: %d   mem_base: %d\n",pid,base);
 	return 0;
 }
