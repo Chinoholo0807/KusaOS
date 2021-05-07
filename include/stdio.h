@@ -153,4 +153,7 @@ PUBLIC int mstat(int pid);
 /* lib/mstat.c */
 PUBLIC int totalmm();
 
+/* lib/buddy.c */
+PUBLIC int buddy();
+
 #endif /* _ORANGES_STDIO_H_ */
