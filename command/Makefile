@@ -12,7 +12,7 @@ CFLAGS		= -I ../include/ -c -fno-builtin -fno-stack-protector -Wall
 LDFLAGS		= -Ttext 0x1000
 DASMFLAGS	= -D
 LIB		= ../lib/orangescrt.a
-BIN		= echo ls pwd cat cd man mkdir rm touch vi testmm testproc ps
+BIN		= echo ls fs man testmm testproc ps
 
 # All Phony Targets
 .PHONY : everything final clean realclean disasm all install
@@ -47,46 +47,10 @@ echo.o: echo.c ../include/type.h ../include/stdio.h
 echo : echo.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
-pwd.o: pwd.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-pwd : pwd.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
-ls.o: ls.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-ls : ls.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
-cat.o: cat.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-cat : cat.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
-cd.o: cd.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-cd : cd.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
 man.o: man.c ../include/type.h ../include/stdio.h ../include/sys/const.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 man : man.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
-mkdir.o: mkdir.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-mkdir : mkdir.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
-rm.o: rm.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-rm : rm.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
 testmm.o: testmm.c ../include/type.h ../include/stdio.h
@@ -100,19 +64,7 @@ testproc.o: testproc.c ../include/type.h ../include/stdio.h
 
 testproc : testproc.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
-
-touch.o: touch.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-touch : touch.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
-vi.o: vi.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
-
-vi : vi.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?
-
+	
 ps.o: ps.c ../include/type.h ../include/stdio.h
 	$(CC) $(CFLAGS) -o $@ $<
 
