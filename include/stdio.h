@@ -106,6 +106,12 @@ PUBLIC	int	sprintf(char *buf, const char *fmt, ...);
 #define SYSLOG syslog
 #endif
 
+/* lib/ls.c  */
+PUBLIC void	ls		(char *pathname);
+
+/* lib/mkdir.c  */
+PUBLIC int	mkdir		(char *pathname);
+
 /* lib/open.c */
 PUBLIC	int	open		(const char *pathname, int flags);
 
