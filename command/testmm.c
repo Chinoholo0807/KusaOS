@@ -36,6 +36,10 @@ int main(int argc, char * argv[])
 			//execv("showmm","hhhhhhh");
 		}
 	}
+	else if(argc>1&&argv[1][0]=='4')	//buddy测试
+	{
+		buddy();
+	}
 	else		//其它情况：打印帮助信息
 	{
 		printl("<Usage>: [testmm] [number]\n");
@@ -43,6 +47,7 @@ int main(int argc, char * argv[])
 		printl("1 -- print current process's pid and memory baseaddr\n");
 		printl("2 -- print total memory size\n");
 		printl("3 -- fork a child process to show the infomation of allocation\n");
+		printl("4 -- a test for buddy system");
 		printl("others -- show this help infomation\n");
 		
 	}
