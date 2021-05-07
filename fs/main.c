@@ -55,6 +55,9 @@ PUBLIC void task_fs()
 		case MKDIR:
 			fs_msg.RETVAL = do_mkdir();
 			break;
+		case IS_DIR:
+                        fs_msg.RETVAL = do_is_dir();
+			break;
 		case OPEN:
 			fs_msg.FD = do_open();
 			break;
