@@ -70,3 +70,9 @@ ps.o: ps.c ../include/type.h ../include/stdio.h
 
 ps : ps.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
+
+fs.o: fs.c ../include/type.h ../include/stdio.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+fs : fs.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
