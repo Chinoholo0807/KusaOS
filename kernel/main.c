@@ -313,7 +313,7 @@ void Init()
 	untar("/cmd.tar");
 			
 
-	char * tty_list[] = {"/dev_tty0"};
+	char * tty_list[] = {"/dev_tty0", "/dev_tty1", "/dev_tty2"};
 
 	int i;
 	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) {
