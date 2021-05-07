@@ -174,7 +174,7 @@ enum msgtype {
 	SUSPEND_PROC, RESUME_PROC,
 
 	/* MM */
-	EXEC, WAIT,PSTAT,MSTAT,TOTAL,
+	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,
 
 	/* FS & MM */
 	FORK, EXIT,
@@ -288,6 +288,10 @@ enum msgtype {
 			 (((m) & I_TYPE_MASK) == I_CHAR_SPECIAL))
 
 #define	NR_DEFAULT_FILE_SECTS	2048 /* 2048 * 512 = 1MB */
+
+#define PAGE_START 26*1024*1024		/* 26M */
+#define PAGE_SIZE 1024		/* 1K */
+#define BUDDY_SIZE 1024		/* 1024K */
 
 
 
