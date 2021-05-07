@@ -4,7 +4,7 @@
 int main(int argc, char * argv[])
 {
 	if(argc <= 2){
-		printf("ERROR PARAMETAR NUM\n");
+		printf("WRONG PARAMETAR NUM\n");
 		return -1;
 	}
 	else if(strcmp(argv[1],"ls")==0){
@@ -16,7 +16,7 @@ int main(int argc, char * argv[])
 		printf("command mkdir\n");
 
 		if(argc <= 3){
-                	printf("ERROR PARAMETAR NUM\n");
+                	printf("WRONG PARAMETAR NUM\n");
                 	return -1;
         	}
 
@@ -33,7 +33,7 @@ int main(int argc, char * argv[])
 		printf("command touch\n");
 
 		if(argc <= 3){
-			printf("ERROR PARAMETAR NUM\n");
+			printf("WRONG PARAMETAR NUM\n");
                         return -1;
 		}
 		
@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
 		printf("command rm\n");
 
                 if(argc <= 3){
-                        printf("ERROR PARAMETAR NUM\n");
+                        printf("WRONG PARAMETAR NUM\n");
                         return -1;
                 }
 
