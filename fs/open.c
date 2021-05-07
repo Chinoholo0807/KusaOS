@@ -215,6 +215,41 @@ PUBLIC int do_open()
 	return fd;
 }
 
+/********************************************************
+ *                              do_is_dir
+ * 如果是目录，返回1
+ * 如果不是，返回0
+ * 如果没有，返回-1
+ * ****************************************************/
+PUBLIC int do_is_dir(){
+        char pathname[MAX_PATH];
+
+        /* 从msg中获取参数 */
+        int name_len = fs_msg.NAME_LEN; /* 文件长度 */
+        int src = fs_msg.source;        /* 调用者的进程号. */
+        assert(name_len < MAX_PATH);
+        phys_copy((void*)va2la(TASK_FS, pathname),
+                  (void*)va2la(src, fs_msg.PATHNAME),
+                  name_len);
+        pathname[name_len] = 0;
+
+        int inode_nr = search_file(pathname);
+
+        char filename[MAX_PATH];
+        struct inode * dir_inode;
+        if (strip_path(filename, pathname, &dir_inode) != 0)
+                return -1;
+        struct inode * pin = 0;
+        pin = get_inode(dir_inode->i_dev, inode_nr);
+        if(pin==0){
+                return -1;
+        }
+        int imode = pin->i_mode & I_TYPE_MASK;
+        if(imode == I_DIRECTORY)
+                return 1;
+        else return 0;
+}
+
 /*****************************************************************************
  *                                create_file
  *****************************************************************************/
