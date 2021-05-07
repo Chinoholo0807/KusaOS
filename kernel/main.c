@@ -223,14 +223,6 @@ void untar(const char * filename)
 	printf(" done]\n");
 }
 
-/*****************************************************************************
- *                                shabby_shell
- *****************************************************************************/
-/**
- * A very very simple shell.
- * 一个简单的shell程序，能够处理用户的输入
- * @param tty_name  TTY file name.
- *****************************************************************************/
 void shabby_shell(const char * tty_name)
 {
 	int fd_stdin  = open(tty_name, O_RDWR);
@@ -238,11 +230,14 @@ void shabby_shell(const char * tty_name)
 	int fd_stdout = open(tty_name, O_RDWR);
 	assert(fd_stdout == 1);
 
+	char current_dirr [512] = "/";
+
 	char rdbuf[128];
 
 	while (1) {
-		//write(1, "$ ", 2);
-		printf("$ ");
+		
+		printf("%s$ ", current_dirr);
+	
 		int r = read(0, rdbuf, 70);
 		rdbuf[r] = 0;
 
@@ -265,30 +260,35 @@ void shabby_shell(const char * tty_name)
 			}
 			p++;
 		} while(ch);
+		argv[argc++]=current_dirr;
 		argv[argc] = 0;
 
-		int fd = open(argv[0], O_RDWR);
-		if (fd == -1) {
-			if (rdbuf[0]) {
-			/*	write(1, "[", 1);
-				write(1, rdbuf, r);
-				write(1, "]\n", 2);*/
-				printf("Can't find command [%s]\n",rdbuf);
-			}
+		if(strcmp(argv[0],"pwd")==0){
+			printf("%s\n",current_dirr);
+		}
+		else if (strcmp(argv[0],"cd")==0){
+			printf("will do cd\n");
 		}
 		else {
-			close(fd);
-			int pid = fork();
-			if (pid != 0) { /* parent */
-				int s;
-				wait(&s);
+			int fd = open(argv[0], O_RDWR);
+			if (fd == -1) {
+				if (rdbuf[0]) {
+					printf("Can't find command [%s]\n",rdbuf);
+				}
 			}
-			else {	/* child */
-				execv(argv[0], argv);
+			else {
+				close(fd);
+				int pid = fork();
+				if (pid != 0) { /* parent */
+					int s;
+					wait(&s);
+				}
+				else {	/* child */
+					execv(argv[0], argv);
+				}
 			}
 		}
 	}
-
 	close(1);
 	close(0);
 }
