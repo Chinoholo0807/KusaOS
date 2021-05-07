@@ -121,6 +121,9 @@ PUBLIC	int	close		(int fd);
 /* lib/read.c */
 PUBLIC int	read		(int fd, void *buf, int count);
 
+/* lib/is_dir.c */
+PUBLIC int      is_dir          (const char *pathname);
+
 /* lib/write.c */
 PUBLIC int	write		(int fd, const void *buf, int count);
 
