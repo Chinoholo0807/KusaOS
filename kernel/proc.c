@@ -49,9 +49,6 @@ PUBLIC void schedule()
 				rr_schedule();
 				break;
 		}
-	}
-
-
 	/*while (!greatest_ticks) {
 		for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
 			if (p->p_flags == 0) {
