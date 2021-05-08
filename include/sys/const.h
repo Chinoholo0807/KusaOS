@@ -187,7 +187,7 @@ enum msgtype {
 	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,KILLP,
 
 	/* FS & MM */
-	FORK, EXIT,
+	FORK, FORK_PRI, EXIT,
 
 	/* TTY, SYS, FS, MM, etc */
 	SYSCALL_RET,
