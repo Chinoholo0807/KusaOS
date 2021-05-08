@@ -236,7 +236,7 @@ void shabby_shell(const char * tty_name)
 
 	while (1) {
 		
-		printf("%s$ ", current_dirr);
+		printf("%s $ ", current_dirr);
 	
 		int r = read(0, rdbuf, 70);
 		rdbuf[r] = 0;
@@ -270,12 +270,42 @@ void shabby_shell(const char * tty_name)
 			printf("%s\n",current_dirr);
 		}
 		else if (strcmp(argv[0],"cd")==0){
+			if(argc == 2){
+				current_dirr[0] = '/';
+				current_dirr[1] = 0;
+				printf("target is /\n");
+				printf("change dir successfully\n");
+				continue;
+			}
 			if(argc!=3){
                                 printf("ERROR PARAMETAR NUM\n");
                                 continue;
                         }
-                        int isdir = is_dir(argv[1]);
-                        printf("isdir = %d\n",isdir);
+			char tmp_path[MAX_PATH]={};
+			if(argv[1][0]=='/'){	//绝对路径
+				memcpy(tmp_path,argv[1],MAX_PATH);
+			}
+			else {	//相对路径
+				memcpy(tmp_path,current_dirr,MAX_PATH);
+				if(strlen(tmp_path) != 1)
+					strcat(tmp_path,"/");
+				strcat(tmp_path,argv[1]);
+			}
+            		int isdir = is_dir(tmp_path);
+			printf("target is %s\n",tmp_path);
+			if(isdir == 1){
+				memcpy(current_dirr,tmp_path,MAX_PATH);
+				printf("change dir successfully\n");
+			}
+			else if(isdir == 0){
+				printf("not a dir\n");
+			}
+			else if(isdir == -1){
+				printf("file not exit\n");
+			}
+			else {
+				printf("ERROR RET_VAL: %d\n",isdir);
+			}
 		}
 		else {
 			int fd = open(argv[0], O_RDWR);
