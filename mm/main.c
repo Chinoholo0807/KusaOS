@@ -73,6 +73,9 @@ PUBLIC void task_mm()
 		case TOTAL:
 			printl("{MM} memsize:%dMB\n", memory_size / (1024 * 1024));
 			break;
+		case MONITOR:
+			mm_msg.RETVAL = do_monitor();
+			break;
 		default:
 			dump_msg("MM::unknown msg", &mm_msg);
 			assert(0);
@@ -186,5 +189,28 @@ PUBLIC int print_proc_memory(int pid)
 	int base = PROCS_BASE +
 		(pid - (NR_TASKS + NR_NATIVE_PROCS)) * PROC_IMAGE_SIZE_DEFAULT;
 	printl("pid: %d   mem_base: %d\n",pid,base);
+	return 0;
+}
+
+
+/*****************************************************************************
+ *****************************************************************************
+ * do_monitor()
+ * 功能:把进程表各pid是否空闲交给监视进程的程序
+ *  
+ * 返回值:  0 成功
+ *****************************************************************************
+ *****************************************************************************/
+
+PUBLIC int do_monitor() {
+	mm_msg.LONG = 0;
+	int i;
+	u64 flag = 1;
+	for (i = 0; i < NR_TASKS + NR_PROCS; i++) {
+		if(proc_table[i].p_flags !=FREE_SLOT)
+			mm_msg.LONG |= flag;
+		flag = flag << 1;
+	}	
+
 	return 0;
 }
