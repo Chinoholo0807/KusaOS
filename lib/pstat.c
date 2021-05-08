@@ -38,3 +38,20 @@ PUBLIC int kill_process(int pid){
 	assert(msg.type == SYSCALL_RET);
 	return msg.RETVAL;
 }
+PUBLIC int change_schedule_policy(int policy){
+	MESSAGE msg;
+	msg.type = CSCHED;
+	msg.SCHED_POL = policy;
+	send_recv(BOTH, TASK_MM, &msg);
+	assert(msg.type == SYSCALL_RET);
+	return msg.RETVAL;
+}
+PUBLIC int change_proc_priority(int pid ,int priority){
+	MESSAGE msg;
+	msg.type = CPROCPRI;
+	msg.PID= pid;
+	msg.PRI= priority;
+	send_recv(BOTH, TASK_MM, &msg);
+	assert(msg.type == SYSCALL_RET);
+	return msg.RETVAL;
+}
