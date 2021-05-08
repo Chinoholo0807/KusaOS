@@ -37,7 +37,7 @@ PRIVATE void cleanup(struct proc * proc);
  *****************************************************************************
  *****************************************************************************/
 
-PUBLIC int do_fork()
+PUBLIC int do_fork(int priority)
 {
 	/* 在进程表中找到一个空项 */
 	struct proc* p = proc_table;
