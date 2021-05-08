@@ -66,6 +66,9 @@ PUBLIC void task_mm()
 		case PSTAT:
 			print_proc_state();
 			break;
+		case KILLP:
+			mm_msg.RETVAL= do_kill();
+			break;
 		case MSTAT:
 			tmp=mm_msg.u.m1.m1i1;
 			print_proc_memory(tmp);
