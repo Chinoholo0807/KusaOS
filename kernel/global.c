@@ -42,7 +42,7 @@ PUBLIC	struct task	user_proc_table[NR_NATIVE_PROCS] = {
 /* 	{TestA, STACK_SIZE_TESTA, "TestA"}, */
 /* 	{TestB, STACK_SIZE_TESTB, "TestB"}, */
 /* 	{TestC, STACK_SIZE_TESTC, "TestC"}}; */
-
+PUBLIC int schedule_policy = SCHED_DEFAULT; /* 默认使用时间片轮转调度算法 */ 
 PUBLIC	char		task_stack[STACK_SIZE_TOTAL];
 
 PUBLIC	TTY		tty_table[NR_CONSOLES];
