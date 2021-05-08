@@ -51,6 +51,9 @@ PUBLIC void task_mm()
 		case FORK:
 			mm_msg.RETVAL = do_fork();
 			break;
+		case FORK_PRI:
+			mm_msg.RETVAL = do_fork(mm_msg.u.m1.m1i1);
+			break;
 		case EXIT:
 			do_exit(mm_msg.STATUS);
 			reply = 0;
