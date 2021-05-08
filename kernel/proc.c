@@ -20,7 +20,10 @@ PRIVATE void unblock(struct proc* p);
 PRIVATE int  msg_send(struct proc* current, int dest, MESSAGE* m);
 PRIVATE int  msg_receive(struct proc* current, int src, MESSAGE* m);
 PRIVATE int  deadlock(int src, int dest);
-
+/* schedule policy */
+PRIVATE void fifo_schedule();
+PRIVATE void rr_schedule();
+PRIVATE void priority_schedule();
 /*****************************************************************************
  *                                schedule
  *****************************************************************************/
@@ -30,22 +33,23 @@ PRIVATE int  deadlock(int src, int dest);
  *****************************************************************************/
 PUBLIC void schedule()
 {
-	struct proc*	p;
-	int		greatest_ticks = 0;
-
-	//myself
-	p = p_proc_ready;				//当前进程表中正在运行的进程
-	if (p == &LAST_PROC) {
-		p = &FIRST_PROC;
-	}
-	else p++;
-	while (p->p_flags != 0 ) {	//确保被调度的进程允许运行
-		if (p == &LAST_PROC) {
-			p = &FIRST_PROC;
+	switch(schedule_policy){	
+			case SCHED_FIFO:
+				/*TODO*/
+				fifo_schedule();
+				break;
+			case SCHED_PRI:
+				/*TODO*/
+				priority_schedule();
+				break;
+			case SCHED_RR:	
+			case SCHED_DEFAULT:
+			default:
+				/*TODO*/
+				rr_schedule();
+				break;
 		}
-		else p++;
 	}
-	p_proc_ready = p;
 
 
 	/*while (!greatest_ticks) {
@@ -63,6 +67,75 @@ PUBLIC void schedule()
 				if (p->p_flags == 0)
 					p->ticks = p->priority;
 	}*/
+}
+PRIVATE void fifo_schedule(){	
+	/* TODO */
+	rr_schedule();
+}
+PRIVATE void priority_schedule(){
+	/* TODO */
+	struct proc* p = p_proc_ready;
+	int nr_tasks= NR_TASKS + NR_NATIVE_PROCS + NR_CONSOLES;
+	int r = ticks % (2*nr_tasks);
+	if(r<nr_tasks){ /* tasks*/ 
+		/*p = proc_table + next_proc;
+		if(p == &proc_table[11])p = &FIRST_PROC;
+		else p++;
+		while(p->p_flags!=0){
+			if(p == &proc_table[11])p = &FIRST_PROC;
+			else p++;
+		}
+		next_proc = p - proc_table;
+		p_proc_ready = p;*/
+		p = proc_table+ r ;
+		while(1){
+			if(p->p_flags==0){
+				p_proc_ready=p;
+				break;
+			}
+			else
+				p++;
+			if(p == &FIRST_PROC + nr_tasks)
+				p =&FIRST_PROC;
+		}
+		//rr_schedule();
+	}else{
+		/* slots for user app */
+		int max_priority = MIN_PRIORITY;
+		struct proc * p_wanna_run=0;
+		for (p = &(proc_table[nr_tasks]); p <= &LAST_PROC; p++) {
+			if (p->p_flags == 0) {
+				if(p->priority>max_priority){
+					max_priority = p->priority;
+					p_wanna_run=p;
+				}
+			}
+		}
+		//if(max_priority!=0)
+		//	disp_int(max_priority);
+		if(p_wanna_run==0){/* no user proc wanna run */
+			rr_schedule();
+		}else{/* change the p_proc_ready */ 
+			p_proc_ready = p_wanna_run;
+		}
+	
+	}
+}
+PRIVATE void rr_schedule(){
+	struct proc* p = p_proc_ready;
+	if( p == &LAST_PROC)
+		p = &FIRST_PROC;
+	else
+		++p;
+	while (p->p_flags!=0) // 确保被调度的进程能够被运行
+	{
+		/* code */
+		if (p == &LAST_PROC) {
+			p = &FIRST_PROC;
+		}
+		else p++;
+	}
+	p_proc_ready =p;
 }
 /*****************************************************************************
  *                                sys_sendrec
