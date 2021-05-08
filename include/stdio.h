@@ -126,6 +126,7 @@ PUBLIC int	getpid		();
 
 /* lib/fork.c */
 PUBLIC int	fork		();
+PUBLIC int fork_priority();
 
 /* lib/exit.c */
 PUBLIC void	exit		(int status);
