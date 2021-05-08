@@ -146,7 +146,7 @@ PUBLIC	int	syslog		(const char *fmt, ...);
 
 /* lib/pstat.c */
 PUBLIC int pstat();
-
+PUBLIC int kill_process(int pid);
 /* lib/mstat.c */
 PUBLIC int mstat(int pid);
 
