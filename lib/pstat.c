@@ -30,3 +30,11 @@ PUBLIC int pstat()
 
 	return 0;
 }
+PUBLIC int kill_process(int pid){
+	MESSAGE msg;
+	msg.type = KILLP;
+	msg.PID=pid;
+	send_recv(BOTH, TASK_MM, &msg);
+	assert(msg.type == SYSCALL_RET);
+	return msg.RETVAL;
+}
