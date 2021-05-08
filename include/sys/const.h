@@ -55,7 +55,9 @@
 
 /* Define of priority */
 #define MAX_PRIORITY 100
-#define MIN_PRIORITY 0
+#define MIN_PRIORITY 1
+#define DEFAULT_TASK_PRIORITY 15
+#define DEFAULT_USER_PROC_PRIORITY 10
 
 /* TTY */
 #define NR_CONSOLES	3	/* consoles */
@@ -184,7 +186,7 @@ enum msgtype {
 	SUSPEND_PROC, RESUME_PROC,
 
 	/* MM */
-	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,KILLP,
+	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,KILLP,CSCHED,CPROCPRI,
 
 	/* FS & MM */
 	FORK, FORK_PRI, EXIT,
@@ -215,9 +217,12 @@ enum msgtype {
 #define	OFFSET		u.m3.m3i2
 #define	WHENCE		u.m3.m3i3
 
+
 #define	PID		u.m3.m3i2
 #define	RETVAL		u.m3.m3i1
 #define	STATUS		u.m3.m3i1
+#define SCHED_POL       u.m3.m3i1
+#define PRI		u.m3.m3i3
 
 
 
