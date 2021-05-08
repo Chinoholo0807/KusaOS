@@ -49,14 +49,14 @@ PUBLIC int kernel_main()
                         priv	= PRIVILEGE_TASK;
                         rpl     = RPL_TASK;
                         eflags  = 0x1202;/* IF=1, IOPL=1, bit 2 is always 1 */
-			prio    = 15;
+			prio    = DEFAULT_TASK_PRIORITY;
                 }
                 else {                  /* USER PROC */
                         t	= user_proc_table + (i - NR_TASKS);
                         priv	= PRIVILEGE_USER;
                         rpl     = RPL_USER;
                         eflags  = 0x202;	/* IF=1, bit 2 is always 1 */
-			prio    = 5;
+			prio    = DEFAULT_USER_PROC_PRIORITY;
                 }
 
 		strcpy(p->name, t->name);	/* 进程的名字 */
