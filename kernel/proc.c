@@ -24,6 +24,7 @@ PRIVATE int  deadlock(int src, int dest);
 PRIVATE void fifo_schedule();
 PRIVATE void rr_schedule();
 PRIVATE void priority_schedule();
+PRIVATE void priority_dynamic_schedule();
 /*****************************************************************************
  *                                schedule
  *****************************************************************************/
@@ -35,34 +36,19 @@ PUBLIC void schedule()
 {
 	switch(schedule_policy){	
 			case SCHED_FIFO:
-				/*TODO*/
 				fifo_schedule();
 				break;
 			case SCHED_PRI:
-				/*TODO*/
 				priority_schedule();
+				break;
+			case SCHED_PRI_DY:
+				priority_dynamic_schedule();
 				break;
 			case SCHED_RR:	
 			default:
-				/*TODO*/
 				rr_schedule();
 				break;
 		}
-	/*while (!greatest_ticks) {
-		for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
-			if (p->p_flags == 0) {
-				if (p->ticks > greatest_ticks) {
-					greatest_ticks = p->ticks;
-					p_proc_ready = p;
-				}
-			}
-		}
-
-		if (!greatest_ticks)
-			for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
-				if (p->p_flags == 0)
-					p->ticks = p->priority;
-	}*/
 }
 PRIVATE void fifo_schedule(){	
 	/* TODO */
@@ -74,15 +60,6 @@ PRIVATE void priority_schedule(){
 	int nr_tasks= NR_TASKS + NR_NATIVE_PROCS + NR_CONSOLES;
 	int r = ticks % (2*nr_tasks);
 	if(r<nr_tasks){ /* tasks*/ 
-		/*p = proc_table + next_proc;
-		if(p == &proc_table[11])p = &FIRST_PROC;
-		else p++;
-		while(p->p_flags!=0){
-			if(p == &proc_table[11])p = &FIRST_PROC;
-			else p++;
-		}
-		next_proc = p - proc_table;
-		p_proc_ready = p;*/
 		p = proc_table+ r ;
 		while(1){
 			if(p->p_flags==0){
@@ -94,7 +71,6 @@ PRIVATE void priority_schedule(){
 			if(p == &FIRST_PROC + nr_tasks)
 				p =&FIRST_PROC;
 		}
-		//rr_schedule();
 	}else{
 		/* slots for user app */
 		int max_priority = MIN_PRIORITY;
@@ -107,8 +83,6 @@ PRIVATE void priority_schedule(){
 				}
 			}
 		}
-		//if(max_priority!=0)
-		//	disp_int(max_priority);
 		if(p_wanna_run==0){/* no user proc wanna run */
 			rr_schedule();
 		}else{/* change the p_proc_ready */ 
@@ -117,13 +91,32 @@ PRIVATE void priority_schedule(){
 	
 	}
 }
+PRIVATE void priority_dynamic_schedule(){
+	struct proc *p = p_proc_ready;
+	int greatest_ticks=0;
+	while (!greatest_ticks) {
+			for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
+				if (p->p_flags == 0) {
+					if (p->ticks > greatest_ticks) {
+						greatest_ticks = p->ticks;
+						p_proc_ready = p;
+					}
+				}
+			}
+
+			if (!greatest_ticks) /* all ticks run out */
+				for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
+					if (p->p_flags == 0)
+						p->ticks = p->priority;
+		}
+}
 PRIVATE void rr_schedule(){
 	struct proc* p = p_proc_ready;
 	if( p == &LAST_PROC)
 		p = &FIRST_PROC;
 	else
 		++p;
-	while (p->p_flags!=0) // 确保被调度的进程能够被运行
+	while (p->p_flags!=0) // to make sure the p_proc_ready is able to run
 	{
 		/* code */
 		if (p == &LAST_PROC) {
