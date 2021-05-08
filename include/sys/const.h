@@ -46,6 +46,16 @@
 #define FREE_SLOT 0x20	/* set when proc table entry is not used
 			 * (ok to allocated to a new process)
 			 */
+/* Schedule policy */
+#define SCHED_RR 1 /* 时间片轮转调度 */
+#define SCHED_FIFO 2 /* FIFO调度 */
+#define SCHED_PRI 3 /* 优先级调度 */
+#define SCHED_PRI_DY 4  /* 动态的优先级调度 */
+#define SCHED_DEFAULT SCHED_RR /* 默认调度策略 */
+
+/* Define of priority */
+#define MAX_PRIORITY 100
+#define MIN_PRIORITY 0
 
 /* TTY */
 #define NR_CONSOLES	3	/* consoles */
