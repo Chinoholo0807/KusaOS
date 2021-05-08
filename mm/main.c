@@ -72,6 +72,12 @@ PUBLIC void task_mm()
 		case KILLP:
 			mm_msg.RETVAL= do_kill();
 			break;
+		case CSCHED:
+			mm_msg.RETVAL=try_change_schedule_policy();
+			break;
+		case CPROCPRI:
+			mm_msg.RETVAL=try_change_proc_priority();
+			break;
 		case MSTAT:
 			tmp=mm_msg.u.m1.m1i1;
 			print_proc_memory(tmp);
@@ -211,6 +217,47 @@ PUBLIC int do_kill(){
 	do_exit_by_mm(pid);
 		return 0;
 }
+/*****************************************************************************
+ *****************************************************************************
+ * try_change_schedule_policy
+ * 功能:改变调度策略
+ *  
+ * 返回值: -1 失败 others 成功改变的调度策略
+ *****************************************************************************
+ *****************************************************************************/
+PUBLIC int try_change_schedule_policy(){
+	int policy =mm_msg.SCHED_POL;
+	if(policy == SCHED_DEFAULT||
+		policy == SCHED_FIFO||
+		policy == SCHED_PRI||
+		policy == SCHED_PRI_DY||
+		policy == SCHED_RR){
+			schedule_policy = policy;
+			return policy;/* change success */
+		}
+	return -1;	/* change fail */
+}
+/*****************************************************************************
+ *****************************************************************************
+ * try_change_proc_priority
+ * 功能:改变进程优先级
+ *  
+ * 返回值: -1 失败 0 成功
+ *****************************************************************************
+ *****************************************************************************/
+PUBLIC int try_change_proc_priority(){
+	int pid = mm_msg.PID;
+	if((pid<NR_TASKS)|/* 无法修改系统进程和初始化进程 */
+		(pid<0|pid>=NR_TASKS+NR_PROCS)|/* pid 越界*/
+		proc_table[pid].p_flags==FREE_SLOT)/* 对应进程非运行状态 */ 
+		return -1;	/* change fail */
+	int priority = mm_msg.PRI;
+	if(priority<=0||priority>=MAX_PRIORITY)
+		priority = DEFAULT_USER_PROC_PRIORITY;
+	proc_table[pid].priority = mm_msg.PRI;
+	return 0;
+}
+
 
 
 PUBLIC int print_proc_memory(int pid)
