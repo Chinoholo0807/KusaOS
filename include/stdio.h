@@ -159,4 +159,8 @@ PUBLIC int totalmm();
 /* lib/buddy.c */
 PUBLIC int buddy();
 
+/* lib/rand.c */
+PUBLIC void srand(unsigned int seed);
+PUBLIC int rand();
+
 #endif /* _ORANGES_STDIO_H_ */
