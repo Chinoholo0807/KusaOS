@@ -47,11 +47,16 @@ PUBLIC int do_ls(){
 	name_len);
     	pathname[name_len] = 0;
 
+	//printl("%d\n",name_len);
+	//printl("%s\n",pathname);
+
 	int i,j;
 
 	struct inode * dir_inode;
     	char filename[20];
     	strip_path(filename, pathname,&dir_inode);
+
+	/********INSERT**************/
 
 	int dir_blk0_nr = dir_inode->i_start_sect;
    	int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
@@ -59,26 +64,65 @@ PUBLIC int do_ls(){
     	int m = 0;
 
 	struct dir_entry * pde;
+	int find = 0;
+	for (i = 0; i < nr_dir_blks&&!find; i++){
+        //printl("%d %d\n", dir_inode->i_dev,nr_dir_blks);
+        RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
 
-	printl("\ninode        filename\n");
-    	printl("============================\n");
+        pde = (struct dir_entry *)fsbuf;
+		
+        for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE && !find; j++, pde++){
+            	if(strlen(pde->name) == 0){
+                    	//
+            	}else{
+			if(strcmp(filename,pde->name)==0){
+				find = 1;
+				dir_inode=get_inode(dir_inode->i_dev,pde->inode_nr);
+			}
+           	}
+        }
+        if (m > nr_dir_entries) //[> all entries have been iterated <]
+            break;
+    }
+	
+	/*******INSERT****************/
+	
+	dir_blk0_nr = dir_inode->i_start_sect;
+   	nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    	nr_dir_entries = dir_inode->i_size / DIR_ENTRY_SIZE;
+    	m = 0;
 
-    	for (i = 0; i < nr_dir_blks; i++){
-        	RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
-		pde = (struct dir_entry *)fsbuf;
-        		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++, pde++){
-            			/*struct inode *n = find_inode(pde->inode_nr);*/
-            			printl("  %2d        %s\n", pde->inode_nr , pde->name);
-            			if (++m >= nr_dir_entries){
-                			printl("\n");
-                			break;
-            			}
-        		}
-        	if (m > nr_dir_entries) //[> all entries have been iterated <]
-            	break;
-    	}	
+	for (i = 0; i < nr_dir_blks; i++){
+        //printl("start_sect: %d\n", dir_blk0_nr);
+        RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
 
-    	printl("============================\n");
+        pde = (struct dir_entry *)fsbuf;
+        for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++, pde++){
+            /*struct inode *n = find_inode(pde->inode_nr);*/
+            if(strlen(pde->name) == 0){
+                    //
+            }else{
+		    //printl("%d",pde->inode_nr);
+                    printl("%s", pde->name);
+		    int l;
+                    for(l=strlen(pde->name); l < 15; l++){
+                        printl(" ");
+                    }
+                    if(m % 4 == 3) {
+                        printl("\n");
+                    }
+                    if (++m >= nr_dir_entries){
+                        break;
+                    }
+               }
+        }
+        if(m%4 != 0){
+            printl("\n");
+        }
+        if (m > nr_dir_entries) //[> all entries have been iterated <]
+            break;
+    }
+
 	return 0;
 }
 
