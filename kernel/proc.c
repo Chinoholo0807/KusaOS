@@ -43,7 +43,6 @@ PUBLIC void schedule()
 				priority_schedule();
 				break;
 			case SCHED_RR:	
-			case SCHED_DEFAULT:
 			default:
 				/*TODO*/
 				rr_schedule();
