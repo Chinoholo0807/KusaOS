@@ -148,6 +148,8 @@ PUBLIC	int	syslog		(const char *fmt, ...);
 /* lib/pstat.c */
 PUBLIC int pstat();
 PUBLIC int kill_process(int pid);
+PUBLIC int change_schedule_policy(int policy);
+PUBLIC int change_proc_priority(int pid,int priority);
 /* lib/mstat.c */
 PUBLIC int mstat(int pid);
 
