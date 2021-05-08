@@ -123,7 +123,51 @@ PUBLIC int do_fork()
 
 	return 0;
 }
+/*****************************************************************************
+ *****************************************************************************
+ * do_exit_by_mm(int pid)
+ * 功能：由mm为pid执行系统调用exit()
+ * 参数status：父进程的existing status位
+ *
+ *****************************************************************************
+ *****************************************************************************/
+PUBLIC void do_exit_by_mm(int pid)
+{
+	int i;
+	//int pid = mm_msg.source; /* 调用进程的PID */
+	int parent_pid = proc_table[pid].p_parent;
+	struct proc * p = &proc_table[pid];
 
+	/* 通知文件系统 */
+	MESSAGE msg2fs;
+	msg2fs.type = EXIT;
+	msg2fs.PID = pid;
+	send_recv(BOTH, TASK_FS, &msg2fs);
+
+	free_mem(pid);
+
+	p->exit_status = pid;
+
+	if (proc_table[parent_pid].p_flags & WAITING) { /*父进程正在waiting */
+		proc_table[parent_pid].p_flags &= ~WAITING;
+		cleanup(&proc_table[pid]);
+	}
+	else { 
+		proc_table[pid].p_flags |= HANGING;
+	}
+
+	/* 如果他有子进程，则将INIT进程作为子进程的新父进程 */
+	for (i = 0; i < NR_TASKS + NR_PROCS; i++) {
+		if (proc_table[i].p_parent == pid) { /* 是子进程 */
+			proc_table[i].p_parent = INIT;
+			if ((proc_table[INIT].p_flags & WAITING) &&
+			    (proc_table[i].p_flags & HANGING)) {
+				proc_table[INIT].p_flags &= ~WAITING;
+				cleanup(&proc_table[i]);
+			}
+		}
+	}
+}
 /*****************************************************************************
  *****************************************************************************
  * do_exit()
