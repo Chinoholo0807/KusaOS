@@ -53,7 +53,7 @@ PUBLIC struct dir_entry * find_entry(char *path)
         RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
         pde = (struct dir_entry *)fsbuf;
         for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
-            if (memcmp(filename, pde->name, MAX_FILENAME_LEN) == 0)
+            if (strcmp(filename, pde->name) == 0)
                 return pde;
             if (++m > nr_dir_entries)
                 break;
@@ -164,7 +164,7 @@ PUBLIC int search_file(char * path)
 		RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
 		pde = (struct dir_entry *)fsbuf;
 		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
-			if (memcmp(filename, pde->name, MAX_FILENAME_LEN) == 0)
+			if (strcmp(filename, pde->name) == 0)
 				return pde->inode_nr;
 			if (++m > nr_dir_entries)
 				break;
