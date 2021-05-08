@@ -50,7 +50,10 @@ PUBLIC void task_mm()
 
 		switch (msgtype) {
 		case FORK:
-			mm_msg.RETVAL = do_fork();
+			mm_msg.RETVAL = do_fork(5);
+			break;
+		case FORK_PRI:
+			mm_msg.RETVAL = do_fork(mm_msg.u.m1.m1i1);
 			break;
 		case EXIT:
 			do_exit(mm_msg.STATUS);
