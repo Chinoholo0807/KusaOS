@@ -85,6 +85,9 @@ PUBLIC int do_fork()
 				((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?
 				 4096 : 1));
 
+	//设置进程优先级
+	p->priority = priority;
+	
 	assert((caller_T_base  == caller_D_S_base ) &&
 	       (caller_T_limit == caller_D_S_limit) &&
 	       (caller_T_size  == caller_D_S_size ));
