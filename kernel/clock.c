@@ -32,7 +32,7 @@ PUBLIC void clock_handler(int irq)
 	if (++ticks >= MAX_TICKS)
 		ticks = 0;
 	
-	if(schedule_policy !=4 ){
+	if(schedule_policy !=SCHED_PRI_DY ){
 > 		if (key_pressed)
 > 			inform_int(TASK_TTY);
 > 		if (k_reenter != 0) {
@@ -44,18 +44,14 @@ PUBLIC void clock_handler(int irq)
 	
 	if (p_proc_ready->ticks)
 		p_proc_ready->ticks--;
-
 	if (key_pressed)
 		inform_int(TASK_TTY);
-
 	if (k_reenter != 0) {
 		return;
 	}
-
 	if (p_proc_ready->ticks > 0) {
 		return;
 	}
-
 	schedule();/* 使用进程调度函数schedule() */
 
 }
