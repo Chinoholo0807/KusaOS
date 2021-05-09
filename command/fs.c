@@ -124,6 +124,22 @@ int main(int argc, char * argv[])
                         return -1;
 		}
 
+		char abs_path1[MAX_PATH];
+
+		memcpy(abs_path1,argv[4],MAX_PATH);
+                if(strlen(abs_path1) != 1){
+                        strcat(abs_path1,"/");
+                }
+                strcat(abs_path1,argv[3]);
+
+		int fd = open(abs_path1, O_RDWR);
+
+                if (fd != -1){
+                        printf("Failed to rename\n");
+			close(fd);
+                        return -1;
+                }	
+	
 		char abs_path[MAX_PATH];
 
                 memcpy(abs_path,argv[4],MAX_PATH);
