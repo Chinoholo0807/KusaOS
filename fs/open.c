@@ -77,7 +77,9 @@ PUBLIC int do_ls(){
             	}else{
 			if(strcmp(filename,pde->name)==0){
 				find = 1;
+				struct inode* tmpinode = dir_inode;
 				dir_inode=get_inode(dir_inode->i_dev,pde->inode_nr);
+				put_inode(tmpinode);
 			}
            	}
         }
@@ -180,6 +182,8 @@ PUBLIC int do_open()
 		  (void*)va2la(src, fs_msg.PATHNAME),
 		  name_len);
 	pathname[name_len] = 0;
+
+	printl("pathname is %s\n",pathname);
 
 	/* 在PROCESS::filp[]找到空闲的地方 */
 	int i;
@@ -286,12 +290,16 @@ PUBLIC int do_is_dir(){
         struct inode * pin = 0;
         pin = get_inode(dir_inode->i_dev, inode_nr);
         if(pin==0){
+			put_inode(pin);
                 return -1;
         }
         int imode = pin->i_mode & I_TYPE_MASK;
-        if(imode == I_DIRECTORY)
-                return 1;
-        else return 0;
+        if(imode == I_DIRECTORY){
+			put_inode(pin);
+                return 1;}
+        else {
+			put_inode(pin);
+			return 0;}
 }
 
 /*****************************************************************************
