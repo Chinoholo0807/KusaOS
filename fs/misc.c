@@ -216,7 +216,7 @@ PUBLIC int strip_path(char * filename, const char * pathname,
 
     if (*s == '/')
         s++;
-    struct inode *pinode_now = root_inode, *ptemp;
+    struct inode *pinode_now = root_inode, *ptemp=0;
     struct dir_entry * pde;
     int dir_blk0_nr, nr_dir_blks, nr_dir_entries, m;
     int i, j;
@@ -239,6 +239,9 @@ PUBLIC int strip_path(char * filename, const char * pathname,
                 //printl("%d  %d\n",SECTOR_SIZE , DIR_ENTRY_SIZE );
                 for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
                     if (strcmp(filename, pde->name) == 0){
+                        if(ptemp){
+                            put_inode(ptemp);
+                        }
                           ptemp = get_inode(pinode_now->i_dev, pde->inode_nr);
                          if(ptemp->i_mode == I_DIRECTORY){
                                   pinode_now = ptemp;
