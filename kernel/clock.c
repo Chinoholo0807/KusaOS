@@ -33,14 +33,14 @@ PUBLIC void clock_handler(int irq)
 		ticks = 0;
 	
 	if(schedule_policy !=SCHED_PRI_DY ){
-> 		if (key_pressed)
-> 			inform_int(TASK_TTY);
-> 		if (k_reenter != 0) {
-> 			return;
-> 		}
-> 		schedule();
-> 		return;
-> 	}
+		if (key_pressed)
+			inform_int(TASK_TTY);
+		if (k_reenter != 0) {
+			return;
+ 		}
+ 		schedule();
+ 		return;
+ 	}
 	
 	if (p_proc_ready->ticks)
 		p_proc_ready->ticks--;
