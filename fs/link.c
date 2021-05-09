@@ -62,10 +62,12 @@ PUBLIC int do_unlink()
 
 	struct inode * pin = get_inode(dir_inode->i_dev, inode_nr);
 
-	if (pin->i_mode != I_REGULAR) { /* 只能删除普通文件 */
+	if (pin->i_mode != I_REGULAR && (pin->imode == I_DIRECTORY && pin->i_size != 0)) { /* 只能删除普通文件或空目录 */
 		printl("{FS} cannot remove file %s, because "
-		       "it is not a regular file.\n",
+		       "it is not a regular file or an empty dir.\n",
 		       pathname);
+		//printl("{FS} imode is %d \n",pin_i_mode);
+		//printl("{FS} isize is %d \n",pin->i_size);
 		return -1;
 	}
 
