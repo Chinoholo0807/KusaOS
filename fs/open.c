@@ -79,7 +79,7 @@ PUBLIC int do_ls(){
 				find = 1;
 				struct inode* tmpinode = dir_inode;
 				dir_inode=get_inode(dir_inode->i_dev,pde->inode_nr);
-				put_inode(tmpinode);
+				//(tmpinode);
 			}
            	}
         }
@@ -293,7 +293,7 @@ PUBLIC int do_is_dir(){
         }
         int imode = pin->i_mode & I_TYPE_MASK;
         if(imode == I_DIRECTORY){
-		put_inode(pin);
+		//put_inode(pin);
                 return 1;
 	}
         else {
