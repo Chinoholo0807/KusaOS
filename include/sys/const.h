@@ -186,7 +186,7 @@ enum msgtype {
 	SUSPEND_PROC, RESUME_PROC,
 
 	/* MM */
-	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,KILLP,CSCHED,CPROCPRI,
+	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,KILLP,CSCHED,CPROCPRI,MONITOR,
 
 	/* FS & MM */
 	FORK, FORK_PRI, EXIT,
@@ -217,6 +217,7 @@ enum msgtype {
 #define	OFFSET		u.m3.m3i2
 #define	WHENCE		u.m3.m3i3
 
+#define	LONG		u.m3.m3l2
 
 #define	PID		u.m3.m3i2
 #define	RETVAL		u.m3.m3i1
