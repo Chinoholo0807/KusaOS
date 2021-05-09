@@ -118,6 +118,22 @@ int main(int argc, char * argv[])
 		unlink(abs_path);
 
         }
+	else if(strcmp(argv[1],"rename")==0){
+		if(argc != 5){
+			printf("WRONG PARAMETAR NUM\n");
+                        return -1;
+		}
+
+		char abs_path[MAX_PATH];
+
+                memcpy(abs_path,argv[4],MAX_PATH);
+                if(strlen(abs_path) != 1){
+                        strcat(abs_path,"/");
+                }
+                strcat(abs_path,argv[2]);
+		
+		rename(abs_path,argv[3]);
+	}
 	else {
 		printf("WRONG COMMAND\n");
 	}
