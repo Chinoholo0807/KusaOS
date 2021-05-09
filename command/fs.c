@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
                 }
                 strcat(abs_path,argv[2]);
 
-                printf("abs_path = %s\n",abs_path);
+                //printf("abs_path = %s\n",abs_path);
 
 		int fd = open(abs_path, O_RDWR);
     		if (fd != -1){
