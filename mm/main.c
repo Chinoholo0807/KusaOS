@@ -215,8 +215,7 @@ PUBLIC int do_kill(){
 	if((pid<NR_TASKS+NR_NATIVE_PROCS)|/* 无法杀死系统进程和初始化进程 */
 		(pid<0|pid>=NR_TASKS+NR_PROCS)|/* pid 越界*/
 		proc_table[pid].p_flags==FREE_SLOT)/* 对应进程非运行状态 */ 
-		return 1;
-	
+		return 1;	
 	do_exit_by_mm(pid);
 		return 0;
 }
@@ -225,7 +224,7 @@ PUBLIC int do_kill(){
  * try_change_schedule_policy
  * 功能:改变调度策略
  *  
- * 返回值: -1 失败 others 成功改变的调度策略
+ * 返回值: 当前调度策略
  *****************************************************************************
  *****************************************************************************/
 PUBLIC int try_change_schedule_policy(){
@@ -236,9 +235,8 @@ PUBLIC int try_change_schedule_policy(){
 		policy == SCHED_PRI_DY||
 		policy == SCHED_RR){
 			schedule_policy = policy;
-			return policy;/* change success */
 		}
-	return -1;	/* change fail */
+	return schedule_policy;	/* return current schedule policy*/
 }
 /*****************************************************************************
  *****************************************************************************
