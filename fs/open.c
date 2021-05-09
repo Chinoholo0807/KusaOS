@@ -288,7 +288,7 @@ PUBLIC int do_is_dir(){
         struct inode * pin = 0;
         pin = get_inode(dir_inode->i_dev, inode_nr);
         if(pin==0){
-		put_inode(pin);
+		//put_inode(pin);
                 return -1;
         }
         int imode = pin->i_mode & I_TYPE_MASK;
