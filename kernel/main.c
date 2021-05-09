@@ -273,7 +273,7 @@ void shabby_shell(const char * tty_name)
 			if(argc == 2){
 				current_dirr[0] = '/';
 				current_dirr[1] = 0;
-				printf("target is /\n");
+				//printf("target is /\n");
 				printf("change dir successfully\n");
 				continue;
 			}
