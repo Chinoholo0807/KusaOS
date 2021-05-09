@@ -240,7 +240,7 @@ PUBLIC int strip_path(char * filename, const char * pathname,
                 for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
                     if (strcmp(filename, pde->name) == 0){
                         if(ptemp){
-                            put_inode(ptemp);
+                            //put_inode(ptemp);
                         }
                           ptemp = get_inode(pinode_now->i_dev, pde->inode_nr);
                          if(ptemp->i_mode == I_DIRECTORY){
