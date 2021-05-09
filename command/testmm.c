@@ -40,6 +40,10 @@ int main(int argc, char * argv[])
 	{
 		buddy();
 	}
+	else if(argc>1&&argv[1][0]=='5')	//Monitor 内存监视
+	{
+		monitor();
+	}
 	else		//其它情况：打印帮助信息
 	{
 		printl("<Usage>: [testmm] [number]\n");
