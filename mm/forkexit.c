@@ -21,7 +21,7 @@
 #include "proto.h"
 
 
-PRIVATE void cleanup(struct proc * proc);
+PUBLIC void cleanup(struct proc * proc);
 
 /*****************************************************************************
  *****************************************************************************
@@ -222,7 +222,12 @@ PUBLIC void do_exit(int status)
 		cleanup(&proc_table[pid]);
 	}
 	else { 
+		
 		proc_table[pid].p_flags |= HANGING;
+		proc_table[pid].p_parent = 5;
+		proc_table[proc_table[pid].p_parent].p_flags &= ~WAITING;
+		printl("clean up %d ",pid);
+		cleanup(&proc_table[pid]);
 	}
 
 	/* 如果他有子进程，则将INIT进程作为子进程的新父进程 */
@@ -245,7 +250,7 @@ PUBLIC void do_exit(int status)
  
  *****************************************************************************
  *****************************************************************************/
-PRIVATE void cleanup(struct proc * proc)
+PUBLIC void cleanup(struct proc * proc)
 {
 	MESSAGE msg2parent;
 	msg2parent.type = SYSCALL_RET;
