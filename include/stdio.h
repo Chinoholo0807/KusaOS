@@ -112,6 +112,9 @@ PUBLIC void	ls		(char *pathname);
 /* lib/mkdir.c  */
 PUBLIC int	mkdir		(char *pathname);
 
+/* lib/rename.c */
+PUBLIC int 	rename		(char *pathname, char *name);
+
 /* lib/open.c */
 PUBLIC	int	open		(const char *pathname, int flags);
 
