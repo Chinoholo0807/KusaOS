@@ -183,8 +183,6 @@ PUBLIC int do_open()
 		  name_len);
 	pathname[name_len] = 0;
 
-	printl("pathname is %s\n",pathname);
-
 	/* 在PROCESS::filp[]找到空闲的地方 */
 	int i;
 	for (i = 0; i < NR_FILES; i++) {
@@ -290,16 +288,18 @@ PUBLIC int do_is_dir(){
         struct inode * pin = 0;
         pin = get_inode(dir_inode->i_dev, inode_nr);
         if(pin==0){
-			put_inode(pin);
+		put_inode(pin);
                 return -1;
         }
         int imode = pin->i_mode & I_TYPE_MASK;
         if(imode == I_DIRECTORY){
-			put_inode(pin);
-                return 1;}
+		put_inode(pin);
+                return 1;
+	}
         else {
-			put_inode(pin);
-			return 0;}
+		put_inode(pin);
+		return 0;
+	}	
 }
 
 /*****************************************************************************
