@@ -58,6 +58,9 @@ PUBLIC void task_fs()
 		case IS_DIR:
                         fs_msg.RETVAL = do_is_dir();
 			break;
+		case RENAME:
+			fs_msg.RETVAL = do_rename();
+			break;
 		case OPEN:
 			fs_msg.FD = do_open();
 			break;
