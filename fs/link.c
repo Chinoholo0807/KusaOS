@@ -71,7 +71,7 @@ PUBLIC int do_unlink()
 		return -1;
 	}
 
-	if (pin->i_cnt > 1) {	/* 当前文件正在被打开 */
+	if (pin->i_cnt > 1 && pin->i_mode != I_DIRECTORY) {	/* 当前文件正在被打开 */
 		printl("{FS} cannot remove file %s, because pin->i_cnt is %d.\n",
 		       pathname, pin->i_cnt);
 		return -1;
@@ -247,7 +247,7 @@ PUBLIC int do_rename(){
 
 	struct inode * pin = get_inode(dir_inode->i_dev, inode_nr);
 
-	if (pin->i_cnt > 1) {	/* 当前文件正在被打开 */
+	if (pin->i_cnt > 1 && pin->i_mode != I_DIRECTORY) {	/* 当前文件正在被打开 */
 		printl("{FS} cannot remove file %s, because pin->i_cnt is %d.\n",
 		       pathname, pin->i_cnt);
 			put_inode(pin);
