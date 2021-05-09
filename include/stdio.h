@@ -159,6 +159,9 @@ PUBLIC int totalmm();
 /* lib/buddy.c */
 PUBLIC int buddy();
 
+/* lib/monitor.c */
+PUBLIC int monitor();
+
 /* lib/rand.c */
 PUBLIC void srand(unsigned int seed);
 PUBLIC int rand();
