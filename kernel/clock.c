@@ -31,7 +31,17 @@ PUBLIC void clock_handler(int irq)
 {
 	if (++ticks >= MAX_TICKS)
 		ticks = 0;
-
+	
+	if(schedule_policy !=4 ){
+> 		if (key_pressed)
+> 			inform_int(TASK_TTY);
+> 		if (k_reenter != 0) {
+> 			return;
+> 		}
+> 		schedule();
+> 		return;
+> 	}
+	
 	if (p_proc_ready->ticks)
 		p_proc_ready->ticks--;
 
