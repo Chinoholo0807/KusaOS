@@ -22,7 +22,7 @@ PRIVATE int  msg_receive(struct proc* current, int src, MESSAGE* m);
 PRIVATE int  deadlock(int src, int dest);
 /* schedule policy */
 PRIVATE void fifo_schedule();
-PRIVATE void rr_schedule();
+PUBLIC void rr_schedule();
 PRIVATE void priority_schedule();
 PRIVATE void priority_dynamic_schedule();
 /*****************************************************************************
@@ -59,36 +59,32 @@ PRIVATE void priority_schedule(){
 	struct proc* p = p_proc_ready;
 	int nr_tasks= NR_TASKS + NR_NATIVE_PROCS + NR_CONSOLES;
 	int r = ticks % (2*nr_tasks);
-	if(r<nr_tasks){ /* tasks*/ 
-		p = proc_table+ r ;
-		while(1){
-			if(p->p_flags==0){
-				p_proc_ready=p;
-				break;
-			}
-			else
-				p++;
-			if(p == &FIRST_PROC + nr_tasks)
-				p =&FIRST_PROC;
-		}
-	}else{
-		/* slots for user app */
+	if(r>=nr_tasks){ /* tasks*/  
 		int max_priority = MIN_PRIORITY;
 		struct proc * p_wanna_run=0;
 		for (p = &(proc_table[nr_tasks]); p <= &LAST_PROC; p++) {
-			if (p->p_flags == 0) {
-				if(p->priority>max_priority){
+				if(p->priority>=max_priority&&p->p_flags!=FREE_SLOT){
 					max_priority = p->priority;
 					p_wanna_run=p;
 				}
-			}
 		}
-		if(p_wanna_run==0){/* no user proc wanna run */
-			rr_schedule();
-		}else{/* change the p_proc_ready */ 
-			p_proc_ready = p_wanna_run;
+		if(p_wanna_run!=0 && p_wanna_run->p_flags==0){
+			//disp_int(p_wanna_run - proc_table);
+			p_proc_ready=p_wanna_run;
+			return ;
+		}			
+	}
+	//rr_schedule();
+	p = proc_table+ r%nr_tasks ;
+	while(1){
+		if(p->p_flags==0){
+			p_proc_ready=p;
+			return;
 		}
-	
+		else
+			p++;
+		if(p == &FIRST_PROC + nr_tasks)
+			p =&FIRST_PROC;
 	}
 }
 PRIVATE void priority_dynamic_schedule(){
@@ -110,7 +106,7 @@ PRIVATE void priority_dynamic_schedule(){
 						p->ticks = p->priority;
 		}
 }
-PRIVATE void rr_schedule(){
+PUBLIC void rr_schedule(){
 	struct proc* p = p_proc_ready;
 	if( p == &LAST_PROC)
 		p = &FIRST_PROC;
@@ -249,7 +245,7 @@ PUBLIC void reset_msg(MESSAGE* p)
 PRIVATE void block(struct proc* p)
 {
 	assert(p->p_flags);
-	schedule();
+	rr_schedule();
 }
 
 /*****************************************************************************
