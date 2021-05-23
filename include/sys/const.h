@@ -46,9 +46,21 @@
 #define FREE_SLOT 0x20	/* set when proc table entry is not used
 			 * (ok to allocated to a new process)
 			 */
+/* Schedule policy */
+#define SCHED_RR 1 /* 时间片轮转调度 */
+#define SCHED_PRI 2 /* 优先级调度 */
+#define SCHED_FIFO 3 /* FIFO调度 */
+#define SCHED_PRI_DY 4  /* 动态的优先级调度 */
+#define SCHED_DEFAULT SCHED_RR /* 默认调度策略 */
+
+/* Define of priority */
+#define MAX_PRIORITY 100
+#define MIN_PRIORITY 1
+#define DEFAULT_TASK_PRIORITY 15
+#define DEFAULT_USER_PROC_PRIORITY 10
 
 /* TTY */
-#define NR_CONSOLES	1	/* consoles */
+#define NR_CONSOLES	3	/* consoles */
 
 /* 8259A interrupt controller ports. */
 #define	INT_M_CTL	0x20	/* I/O port for interrupt controller         <Master> */
@@ -168,16 +180,16 @@ enum msgtype {
 	GET_TICKS, GET_PID, GET_RTC_TIME,
 
 	/* FS */
-	OPEN, CLOSE, READ, WRITE, LSEEK, STAT, UNLINK,
+	OPEN, CLOSE, READ, WRITE, LSEEK, STAT, UNLINK,LS, MKDIR, IS_DIR, RENAME, 
 
 	/* FS & TTY */
 	SUSPEND_PROC, RESUME_PROC,
 
 	/* MM */
-	EXEC, WAIT,PSTAT,MSTAT,TOTAL,
+	EXEC, WAIT,PSTAT,MSTAT,TOTAL,BUDDY,KILLP,CSCHED,CPROCPRI,MONITOR,
 
 	/* FS & MM */
-	FORK, EXIT,
+	FORK, FORK_PRI, EXIT,
 
 	/* TTY, SYS, FS, MM, etc */
 	SYSCALL_RET,
@@ -205,11 +217,16 @@ enum msgtype {
 #define	OFFSET		u.m3.m3i2
 #define	WHENCE		u.m3.m3i3
 
+#define	LONG		u.m3.m3l2
+#define LONG2 		u.m3.m3i5
+
 #define	PID		u.m3.m3i2
 #define	RETVAL		u.m3.m3i1
 #define	STATUS		u.m3.m3i1
+#define SCHED_POL       u.m3.m3i1
+#define PRI		u.m3.m3i3
 
-
+#define AVAILABLE	u.m3.m3i5
 
 
 
@@ -288,6 +305,10 @@ enum msgtype {
 			 (((m) & I_TYPE_MASK) == I_CHAR_SPECIAL))
 
 #define	NR_DEFAULT_FILE_SECTS	2048 /* 2048 * 512 = 1MB */
+
+#define PAGE_START 26*1024*1024		/* 26M */
+#define PAGE_SIZE 1024		/* 1K */
+#define BUDDY_SIZE 1024		/* 1024K */
 
 
 

@@ -106,9 +106,10 @@ PUBLIC int		alloc_mem(int pid, int memsize);
 PUBLIC int		free_mem(int pid);
 
 /* mm/forkexit.c */
-PUBLIC int		do_fork();
+PUBLIC int		do_fork(int priority);
 PUBLIC void		do_exit(int status);
 PUBLIC void		do_wait();
+PUBLIC void cleanup(struct proc * proc);
 
 /* mm/exec.c */
 PUBLIC int		do_exec();

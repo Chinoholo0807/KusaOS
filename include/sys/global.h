@@ -1,3 +1,11 @@
+/*
+ * @Description: 
+ * @Author: l
+ * @Date: 2021-05-09 19:27:35
+ * @LastEditors: l
+ * @LastEditTime: 2021-05-09 20:17:16
+ * @FilePath: \KusaOS-tty.v1\include\sys\global.h
+ */
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                             global.h
@@ -11,7 +19,6 @@
 #endif
 
 EXTERN	int	ticks;
-
 EXTERN	int	disp_pos;
 
 EXTERN	u8			gdt_ptr[6];	/* 0~15:Limit  16~47:Base */
@@ -35,6 +42,7 @@ extern	char		task_stack[];
 extern	struct proc	proc_table[];
 extern  struct task	task_table[];
 extern  struct task	user_proc_table[];
+extern  int schedule_policy;
 extern	irq_handler	irq_table[];
 extern	TTY		tty_table[];
 extern  CONSOLE		console_table[];
@@ -61,3 +69,4 @@ extern	char *			logbuf;
 extern	const int		LOGBUF_SIZE;
 extern	char *			logdiskbuf;
 extern	const int		LOGDISKBUF_SIZE;
+
