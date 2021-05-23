@@ -43,7 +43,10 @@ LOBJS		=  lib/syscall.o\
 			lib/string.o lib/misc.o\
 			lib/open.o lib/read.o lib/write.o lib/close.o lib/unlink.o\
 			lib/getpid.o lib/stat.o\
-			lib/fork.o lib/exit.o lib/wait.o lib/exec.o lib/pstat.o lib/mstat.o
+			lib/fork.o lib/exit.o lib/wait.o lib/exec.o lib/pstat.o lib/mstat.o lib/buddy.o lib/monitor.o lib/rand.o\
+			lib/delay.o\
+			lib/ls.o lib/mkdir.o lib/is_dir.o lib/rename.o\
+			lib/hello_kusa.o
 DASMOUTPUT	= kernel.bin.asm
 
 # All Phony Targets
@@ -160,6 +163,15 @@ lib/write.o: lib/write.c
 lib/close.o: lib/close.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+lib/ls.o: lib/ls.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/mkdir.o: lib/mkdir.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/rename.o: lib/rename.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 lib/pstat.o: lib/pstat.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -190,6 +202,21 @@ lib/exec.o: lib/exec.c
 lib/stat.o: lib/stat.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+lib/buddy.o: lib/buddy.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/monitor.o: lib/monitor.c
+	$(CC) $(CFLAGS) -o $@ $<	
+
+lib/rand.o: lib/rand.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/delay.o: lib/delay.c 
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/hello_kusa.o: lib/hello_kusa.c 
+	$(CC) $(CFLAGS) -o $@ $<
+
 mm/main.o: mm/main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -213,4 +240,3 @@ fs/link.o: fs/link.c
 
 fs/disklog.o: fs/disklog.c
 	$(CC) $(CFLAGS) -o $@ $<
-
