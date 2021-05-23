@@ -41,3 +41,15 @@ PUBLIC int fork()
 
 	return msg.PID;
 }
+PUBLIC int fork_priority(int priority)
+{
+	MESSAGE msg;
+	msg.type = FORK_PRI;
+	msg.u.m1.m1i1 = priority;
+
+	send_recv(BOTH, TASK_MM, &msg);
+	assert(msg.type == SYSCALL_RET);
+	assert(msg.RETVAL == 0);
+
+	return msg.PID;
+}

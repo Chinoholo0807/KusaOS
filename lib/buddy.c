@@ -4,8 +4,9 @@
  * @Date: 2021-05-06 23:29:45
  * @LastEditors: l
  * @LastEditTime: 2021-05-07 00:05:42
- * @FilePath: \KusaOS-mid\lib\mstat.c
+ * @FilePath: \KusaOS-mid\lib\buddy.c
  */
+
 
 #include "type.h"
 #include "stdio.h"
@@ -19,28 +20,25 @@
 #include "global.h"
 #include "proto.h"
 
-PUBLIC int mstat(int pid)
-{
+PUBLIC int buddy()
+{	
+	int i;
+
 	MESSAGE msg;
-	msg.type = MSTAT;
-    	msg.AVAILABLE=pid;
+	msg.type = BUDDY;
 
 	send_recv(BOTH, TASK_MM, &msg);
 	assert(msg.type == SYSCALL_RET);
-	//assert(msg.RETVAL == 0);
-	printf("Current pid: %d    BaseAddr: %08xH\n",pid,msg.AVAILABLE);
+	if(msg.RETVAL != 0)
+	  	assert(0);
 
+	for(i=1;i<=10;i++)
+	{
+		printf("size: %2dK     ",msg.LONG);
+		printf("addr: %08xH\n",msg.LONG2);		
+		msg.type = BUDDY;
+		send_recv(BOTH, TASK_MM, &msg);
+	}
 	return 0;
-}
 
-PUBLIC int totalmm()
-{
-    MESSAGE msg;
-	msg.type = TOTAL;
-
-	send_recv(BOTH, TASK_MM, &msg);
-	assert(msg.type == SYSCALL_RET);
-	//assert(msg.RETVAL == 0);
-	printf("Total memory size:%dMB\n", msg.AVAILABLE);
-	return 0;
 }
