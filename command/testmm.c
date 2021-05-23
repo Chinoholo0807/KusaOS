@@ -12,41 +12,30 @@
 //testmm命令
 int main(int argc, char * argv[])
 {
-	if(argc>1&&argv[1][0]=='1')
-	{
-		mstat(getpid());
+	int pid = fork();
+	if (pid != 0) { //父进程
+		printf("parent--pid %d:fork and allocate.\n",getpid());
+		int s;
+		int i,j,k;
+		wait(&s);
+		/*for(i=0;i<10;++i)
+            		for(j=0;j<10000;++j)
+                		for(k=0;k<10;++k)
+                {}*/
 	}
-	else if(argc>1&&argv[1][0]=='2')
-	{
-		totalmm();
-		//printl("2 -- print total memory size\n");
-	}
-	else if(argc>1&&argv[1][0]=='3')	//测试函数：双进程
-	{
-		int pid = fork();
-		if (pid != 0) { //父进程
-			printl("parent--pid %d:fork and allocate.\n",getpid());
-			int s;
-			wait(&s);
+	else {		//子进程
+		int i,j,k;	//等待一段时间，防止在父进程wait()前子进程先退出；
+        	for(i=0;i<10;++i)
+            		for(j=0;j<10000;++j)
+                		for(k=0;k<10;++k)
+                {}
+		if(getpid()==20)	//防止进程创建过多消耗内存资源
+		{
+			printf("child --pid 20:exit.\n");
+			return 0;
 		}
-		else {		//子进程
-			printl("child--pid %d:execute testmm\n",getpid());
-			argv[1][0]='1';		//下次执行功能1
-			execv("testmm",argv);
-			//execv("showmm","hhhhhhh");
-		}
+		printf("child --pid %d:execute testmm.\n",getpid());
+		exec("testmm");
 	}
-	else		//其它情况：打印帮助信息
-	{
-		printl("<Usage>: [testmm] [number]\n");
-		printl("number:\n");
-		printl("1 -- print current process's pid and memory baseaddr\n");
-		printl("2 -- print total memory size\n");
-		printl("3 -- fork a child process to show the infomation of allocation\n");
-		printl("others -- show this help infomation\n");
-		
-	}
-
 	return 0;
-
 }

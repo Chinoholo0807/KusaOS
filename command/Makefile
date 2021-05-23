@@ -12,7 +12,7 @@ CFLAGS		= -I ../include/ -c -fno-builtin -fno-stack-protector -Wall
 LDFLAGS		= -Ttext 0x1000
 DASMFLAGS	= -D
 LIB		= ../lib/orangescrt.a
-BIN		= echo fs man testmm testproc ps
+BIN		= echo fs man testmm testproc ps kill csche buddy monitor mstat
 
 # All Phony Targets
 .PHONY : everything final clean realclean disasm all install
@@ -59,7 +59,7 @@ testmm.o: testmm.c ../include/type.h ../include/stdio.h
 testmm : testmm.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
-testproc.o: testproc.c ../include/type.h ../include/stdio.h
+testproc.o: testproc.c ../include/type.h ../include/stdio.h 
 	$(CC) $(CFLAGS) -o $@ $<
 
 testproc : testproc.o start.o $(LIB)
@@ -75,4 +75,34 @@ fs.o: fs.c ../include/type.h ../include/stdio.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs : fs.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+kill.o: kill.c ../include/type.h ../include/stdio.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+kill : kill.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+csche.o: csche.c ../include/type.h ../include/stdio.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+csche : csche.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+buddy.o: buddy.c ../include/type.h ../include/stdio.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+buddy : buddy.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+monitor.o: monitor.c ../include/type.h ../include/stdio.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+monitor : monitor.o start.o $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $?
+
+mstat.o: mstat.c ../include/type.h ../include/stdio.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+mstat : mstat.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
