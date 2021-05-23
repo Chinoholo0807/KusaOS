@@ -1,3 +1,11 @@
+/*
+ * @Description: 
+ * @Author: l
+ * @Date: 2021-05-09 16:18:16
+ * @LastEditors: l
+ * @LastEditTime: 2021-05-09 20:21:20
+ * @FilePath: \KusaOS-tty.v1\kernel\global.c
+ */
 /*************************************************************************//**
  *****************************************************************************
  * @file   global.c
@@ -17,6 +25,7 @@
 #include "proc.h"
 #include "global.h"
 #include "proto.h"
+
 
 /* 实例化后的进程表，包括系统进程和用户进程 */
 PUBLIC	struct proc proc_table[NR_TASKS + NR_PROCS];
@@ -42,7 +51,7 @@ PUBLIC	struct task	user_proc_table[NR_NATIVE_PROCS] = {
 /* 	{TestA, STACK_SIZE_TESTA, "TestA"}, */
 /* 	{TestB, STACK_SIZE_TESTB, "TestB"}, */
 /* 	{TestC, STACK_SIZE_TESTC, "TestC"}}; */
-
+PUBLIC int schedule_policy = SCHED_DEFAULT;//4; /* 默认使用时间片轮转调度算法 */ 
 PUBLIC	char		task_stack[STACK_SIZE_TOTAL];
 
 PUBLIC	TTY		tty_table[NR_CONSOLES];

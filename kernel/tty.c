@@ -169,6 +169,16 @@ PUBLIC void in_process(TTY* tty, u32 key)
 				scroll_screen(tty->console, SCR_UP);
 			}
 			break;
+		case PAGEUP:
+			if(current_console == 2)select_console(0);
+			else
+				select_console(current_console + 1);
+			break;
+		case PAGEDOWN:
+			if(current_console == 0)select_console(2);
+			else
+				select_console(current_console - 1);
+			break;
 		case F1:
 		case F2:
 		case F3:

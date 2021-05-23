@@ -1,3 +1,11 @@
+/*
+ * @Description: 
+ * @Author: l
+ * @Date: 2021-05-09 16:18:17
+ * @LastEditors: l
+ * @LastEditTime: 2021-05-09 20:21:40
+ * @FilePath: \KusaOS-tty.v1\kernel\clock.c
+ */
 /*************************************************************************//**
  *****************************************************************************
  * @file   clock.c
@@ -31,17 +39,26 @@ PUBLIC void clock_handler(int irq)
 {
 	if (++ticks >= MAX_TICKS)
 		ticks = 0;
+	if(schedule_policy !=SCHED_DEFAULT){
+		if (key_pressed)
+			inform_int(TASK_TTY);
+		if (k_reenter != 0) {
+			return;
+		}
+		schedule();
+		return;
+	}
 
 	if (p_proc_ready->ticks)
 		p_proc_ready->ticks--;
 
 	if (key_pressed)
 		inform_int(TASK_TTY);
-
+	
 	if (k_reenter != 0) {
 		return;
 	}
-
+	
 	if (p_proc_ready->ticks > 0) {
 		return;
 	}

@@ -49,14 +49,14 @@ PUBLIC int kernel_main()
                         priv	= PRIVILEGE_TASK;
                         rpl     = RPL_TASK;
                         eflags  = 0x1202;/* IF=1, IOPL=1, bit 2 is always 1 */
-			prio    = 15;
+			prio    = DEFAULT_TASK_PRIORITY;
                 }
                 else {                  /* USER PROC */
                         t	= user_proc_table + (i - NR_TASKS);
                         priv	= PRIVILEGE_USER;
                         rpl     = RPL_USER;
                         eflags  = 0x202;	/* IF=1, bit 2 is always 1 */
-			prio    = 5;
+			prio    = DEFAULT_USER_PROC_PRIORITY;
                 }
 
 		strcpy(p->name, t->name);	/* 进程的名字 */
@@ -224,25 +224,29 @@ void untar(const char * filename)
 }
 
 /*****************************************************************************
- *                                shabby_shell
+ *                                shell
  *****************************************************************************/
 /**
  * A very very simple shell.
  * 一个简单的shell程序，能够处理用户的输入
  * @param tty_name  TTY file name.
  *****************************************************************************/
-void shabby_shell(const char * tty_name)
+void shell(const char * tty_name)
 {
 	int fd_stdin  = open(tty_name, O_RDWR);
 	assert(fd_stdin  == 0);
 	int fd_stdout = open(tty_name, O_RDWR);
 	assert(fd_stdout == 1);
 
-	char rdbuf[128];
+	char current_dirr [512] = "/";
 
+	char rdbuf[128];
+	hello_kusa();
+	milli_delay(10000);
 	while (1) {
-		//write(1, "$ ", 2);
-		printf("$ ");
+		//delay(1);
+		printf("%s $ ", current_dirr);
+	
 		int r = read(0, rdbuf, 70);
 		rdbuf[r] = 0;
 
@@ -265,30 +269,76 @@ void shabby_shell(const char * tty_name)
 			}
 			p++;
 		} while(ch);
+		argv[argc++]=current_dirr;
 		argv[argc] = 0;
-
-		int fd = open(argv[0], O_RDWR);
-		if (fd == -1) {
-			if (rdbuf[0]) {
-			/*	write(1, "[", 1);
-				write(1, rdbuf, r);
-				write(1, "]\n", 2);*/
-				printf("Can't find command [%s]\n",rdbuf);
+		
+		if(argc==1)
+                        continue;
+		
+		if(strcmp(argv[0],"pwd")==0){
+			printf("%s\n",current_dirr);
+		}
+		else if (strcmp(argv[0],"cd")==0){
+			if(argc == 2){
+				current_dirr[0] = '/';
+				current_dirr[1] = 0;
+				//printf("target is /\n");
+				printf("change dir successfully\n");
+				continue;
+			}
+			if(argc!=3){
+                                printf("ERROR PARAMETAR NUM\n");
+                                continue;
+                        }
+			char tmp_path[MAX_PATH]={};
+			if(argv[1][0]=='/'){	//绝对路径
+				memcpy(tmp_path,argv[1],MAX_PATH);
+			}
+			else {	//相对路径
+				memcpy(tmp_path,current_dirr,MAX_PATH);
+				if(strlen(tmp_path) != 1)
+					strcat(tmp_path,"/");
+				strcat(tmp_path,argv[1]);
+			}
+            		int isdir = is_dir(tmp_path);
+			//printf("target is %s\n",tmp_path);
+			if(isdir == 1){
+				memcpy(current_dirr,tmp_path,MAX_PATH);
+				if(strcmp(current_dirr,"/.") == 0){
+					current_dirr[1] = 0;
+				}
+				printf("change dir successfully\n");
+			}
+			else if(isdir == 0){
+				printf("not a dir\n");
+			}
+			else if(isdir == -1){
+				printf("file not exit\n");
+			}
+			else {
+				printf("ERROR RET_VAL: %d\n",isdir);
 			}
 		}
 		else {
-			close(fd);
-			int pid = fork();
-			if (pid != 0) { /* parent */
-				int s;
-				wait(&s);
+			int fd = open(argv[0], O_RDWR);
+			if (fd == -1) {
+				if (rdbuf[0]) {
+					printf("Can't find command [%s]\n",rdbuf);
+				}
 			}
-			else {	/* child */
-				execv(argv[0], argv);
+			else {
+				close(fd);
+				int pid = fork();
+				if (pid != 0) { /* parent */
+					int s;
+					wait(&s);
+				}
+				else {	/* child */
+					execv(argv[0], argv);
+				}
 			}
 		}
 	}
-
 	close(1);
 	close(0);
 }
@@ -313,20 +363,20 @@ void Init()
 	untar("/cmd.tar");
 			
 
-	char * tty_list[] = {"/dev_tty0"};
+	char * tty_list[] = {"/dev_tty0", "/dev_tty1", "/dev_tty2"};
 
 	int i;
 	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) {
 		int pid = fork();
 		if (pid != 0) { /* parent process */
-			printf("[Init(parent) is runing, child pid:%d]\n", pid);
+		//	printf("[Init(parent) is runing, child pid:%d]\n", pid);
 		}
 		else {	/* child process */
 			printf("[Shell(child) is running, pid:%d]\n", getpid());
 			close(fd_stdin);
 			close(fd_stdout);
 			
-			shabby_shell(tty_list[i]);
+			shell(tty_list[i]);
 			assert(0);
 		}
 	}
@@ -334,7 +384,7 @@ void Init()
 	while (1) {
 		int s;
 		int child = wait(&s);
-		printf("child (%d) exited with status: %d.\n", child, s);
+	//	printf("child (%d) exited with status: %d.\n", child, s);
 	}
 
 	assert(0);
