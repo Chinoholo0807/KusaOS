@@ -105,12 +105,23 @@ PUBLIC	int	sprintf(char *buf, const char *fmt, ...);
 #ifdef ENABLE_DISK_LOG
 #define SYSLOG syslog
 #endif
+/* lib/ls.c  */
+PUBLIC void	ls		(char *pathname);
+
+/* lib/mkdir.c  */
+PUBLIC int	mkdir		(char *pathname);
+
+/* lib/rename.c */
+PUBLIC int 	rename		(char *pathname, char *name);
 
 /* lib/open.c */
 PUBLIC	int	open		(const char *pathname, int flags);
 
 /* lib/close.c */
 PUBLIC	int	close		(int fd);
+
+/* lib/is_dir.c */
+PUBLIC int      is_dir          (const char *pathname);
 
 /* lib/read.c */
 PUBLIC int	read		(int fd, void *buf, int count);
@@ -126,6 +137,7 @@ PUBLIC int	getpid		();
 
 /* lib/fork.c */
 PUBLIC int	fork		();
+PUBLIC int fork_priority();
 
 /* lib/exit.c */
 PUBLIC void	exit		(int status);
@@ -146,11 +158,29 @@ PUBLIC	int	syslog		(const char *fmt, ...);
 
 /* lib/pstat.c */
 PUBLIC int pstat();
-
+PUBLIC int kill_process(int pid);
+PUBLIC int change_schedule_policy(int policy);
+PUBLIC int change_proc_priority(int pid,int priority);
 /* lib/mstat.c */
 PUBLIC int mstat(int pid);
 
 /* lib/mstat.c */
 PUBLIC int totalmm();
 
+/* lib/buddy.c */
+PUBLIC int buddy();
+
+/* lib/monitor.c */
+PUBLIC int monitor();
+
+/* lib/rand.c */
+PUBLIC void srand(unsigned int seed);
+PUBLIC int rand();
+
+/* lib/delay.c */
+PUBLIC int get_cur_ticks();
+PUBLIC void delay(int milli_sec);
+
+/* lib/hello_kusa.c */
+PUBLIC void hello_kusa();
 #endif /* _ORANGES_STDIO_H_ */
