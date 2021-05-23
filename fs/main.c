@@ -49,6 +49,18 @@ PUBLIC void task_fs()
 		pcaller = &proc_table[src];
 
 		switch (msgtype) {
+		case LS:
+			fs_msg.RETVAL = do_ls();
+			break;
+		case MKDIR:
+			fs_msg.RETVAL = do_mkdir();
+			break;
+		case IS_DIR:
+                        fs_msg.RETVAL = do_is_dir();
+			break;
+		case RENAME:
+			fs_msg.RETVAL = do_rename();
+			break;
 		case OPEN:
 			fs_msg.FD = do_open();
 			break;
@@ -71,9 +83,9 @@ PUBLIC void task_fs()
 		case EXIT:
 			fs_msg.RETVAL = fs_exit();
 			break;
-		/* case LSEEK: */
-		/* 	fs_msg.OFFSET = do_lseek(); */
-		/* 	break; */
+		 case LSEEK: 
+		 	fs_msg.OFFSET = do_lseek(); 
+		 	break; 
 		case STAT:
 			fs_msg.RETVAL = do_stat();
 			break;
@@ -84,7 +96,7 @@ PUBLIC void task_fs()
 		}
 
 		/*硬盘日志*/
-#ifdef ENABLE_DISK_LOG
+/*#ifdef ENABLE_DISK_LOG
 		char * msg_name[128];
 		msg_name[OPEN]   = "OPEN";
 		msg_name[CLOSE]  = "CLOSE";
@@ -92,9 +104,9 @@ PUBLIC void task_fs()
 		msg_name[WRITE]  = "WRITE";
 		msg_name[LSEEK]  = "LSEEK";
 		msg_name[UNLINK] = "UNLINK";
-		/* msg_name[FORK]   = "FORK"; */
-		/* msg_name[EXIT]   = "EXIT"; */
-		/* msg_name[STAT]   = "STAT"; */
+		 msg_name[FORK]   = "FORK"; 
+		 msg_name[EXIT]   = "EXIT"; 
+		 msg_name[STAT]   = "STAT"; 
 
 		switch (msgtype) {
 		case UNLINK:
@@ -107,7 +119,7 @@ PUBLIC void task_fs()
 		case WRITE:
 		case FORK:
 		case EXIT:
-		/* case LSEEK: */
+		 case LSEEK: 
 		case STAT:
 			break;
 		case RESUME_PROC:
@@ -115,7 +127,7 @@ PUBLIC void task_fs()
 		default:
 			assert(0);
 		}
-#endif
+#endif*/
 
 		/* reply */
 		if (fs_msg.type != SUSPEND_PROC) {

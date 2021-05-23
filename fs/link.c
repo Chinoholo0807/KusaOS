@@ -62,7 +62,7 @@ PUBLIC int do_unlink()
 
 	struct inode * pin = get_inode(dir_inode->i_dev, inode_nr);
 
-	if (pin->i_mode != I_REGULAR && (pin->imode == I_DIRECTORY && pin->i_size != 0)) { /* 只能删除普通文件或空目录 */
+	if (pin->i_mode != I_REGULAR && (pin->i_mode == I_DIRECTORY && pin->i_size != 0)) { /* 只能删除普通文件或空目录 */
 		printl("{FS} cannot remove file %s, because "
 		       "it is not a regular file or an empty dir.\n",
 		       pathname);
@@ -71,7 +71,7 @@ PUBLIC int do_unlink()
 		return -1;
 	}
 
-	if (pin->i_cnt > 1) {	/* 当前文件正在被打开 */
+	if (pin->i_cnt > 1 && pin->i_mode != I_DIRECTORY) {	/* 当前文件正在被打开 */
 		printl("{FS} cannot remove file %s, because pin->i_cnt is %d.\n",
 		       pathname, pin->i_cnt);
 		return -1;
@@ -206,5 +206,89 @@ PUBLIC int do_unlink()
 		sync_inode(dir_inode);
 	}
 
+	return 0;
+}
+
+PUBLIC int do_rename(){
+	char pathname[MAX_PATH];
+	char name[MAX_PATH];
+	
+
+	/* 从message获取参数 */
+	int name_len = fs_msg.NAME_LEN;	/* 文件名的长度 */
+	int change_len = fs_msg.BUF_LEN;
+	int src = fs_msg.source;	/* 调用者的进程号. */
+	assert(name_len < MAX_PATH);
+	phys_copy((void*)va2la(TASK_FS, pathname),
+		  (void*)va2la(src, fs_msg.PATHNAME),
+		  name_len);
+	pathname[name_len] = 0;
+	phys_copy((void*)va2la(TASK_FS, name),
+		  (void*)va2la(src, fs_msg.BUF),
+		  name_len);
+	name[change_len] = 0;
+
+	if (strcmp(pathname , "/") == 0) {
+		printl("{FS} FS:do_rename():: cannot rename the root\n");
+		return -1;
+	}
+
+	int inode_nr = search_file(pathname);
+	if (inode_nr == INVALID_INODE) {	/* 文件没有找到 */
+		printl("{FS} FS::do_unlink():: search_file() returns "
+			"invalid inode: %s\n", pathname);
+		return -1;
+	}
+
+	char filename[MAX_PATH];
+	struct inode * dir_inode;
+	if (strip_path(filename, pathname, &dir_inode) != 0)
+		return -1;
+
+	struct inode * pin = get_inode(dir_inode->i_dev, inode_nr);
+
+	if (pin->i_cnt > 1 && pin->i_mode != I_DIRECTORY) {	/* 当前文件正在被打开 */
+		printl("{FS} cannot remove file %s, because pin->i_cnt is %d.\n",
+		       pathname, pin->i_cnt);
+			put_inode(pin);
+		return -1;
+	}
+
+	int dir_blk0_nr = dir_inode->i_start_sect;
+	int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE) / SECTOR_SIZE;
+	int nr_dir_entries =
+		dir_inode->i_size / DIR_ENTRY_SIZE; /* including unused slots
+						     * (the file has been
+						     * deleted but the slot
+						     * is still there)
+						     */
+	int m = 0,i=0;
+	struct dir_entry * pde = 0;
+	int flg = 0;
+
+	for (i = 0; i < nr_dir_blks; i++) {
+		RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
+
+		pde = (struct dir_entry *)fsbuf;
+		int j;
+		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
+			if (++m > nr_dir_entries)
+				break;
+
+			if (pde->inode_nr == inode_nr) {
+				pde->name[0]=0;
+				strcat(pde->name,name);
+				WR_SECT(dir_inode->i_dev, dir_blk0_nr + i);
+				flg = 1;
+				break;
+			}
+		}
+
+		if (m > nr_dir_entries || /* 已经遍历所有项或者 */
+		    flg) /* 文件被找到 */
+			break;
+	}
+
+put_inode(pin);
 	return 0;
 }
